@@ -3,7 +3,7 @@
 #include "parse_general.hpp"
 
 // takes char and returns the corresponding TokenClass
-TokenClass classifyInitial (char c)
+TokenClass classifyInitial (char c, TokenState* state)
 {
     if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
         return TOKEN_CLASS_NONE;
@@ -12,7 +12,10 @@ TokenClass classifyInitial (char c)
         return TOKEN_CLASS_UNKNOWN;
 
     if ('0' <= c && c <= '9')
+    {
+        if (c == '0') state->number.hasLeadingZero = true;
         return TOKEN_CLASS_NUMBER;
+    }
 
     if (c == '\'')
         return TOKEN_CLASS_CHAR;
@@ -28,6 +31,10 @@ TokenClass classifyInitial (char c)
     return TOKEN_CLASS_OPERATOR;
 }
 
+TokenClass classifyNumber (char c, TokenState* state)
+{
+    if (0) {}
+}
 
 bool parseGeneral (FILE* file, std::vector<TokenGeneral> &tokenList)
 {
@@ -35,6 +42,7 @@ bool parseGeneral (FILE* file, std::vector<TokenGeneral> &tokenList)
     size_t column = 0;
     
     TokenGeneral token = {};
+    TokenState state = {};
 
     int c;
 
@@ -61,7 +69,7 @@ bool parseGeneral (FILE* file, std::vector<TokenGeneral> &tokenList)
             default:
                 //TODO: implement separate rules for continuing tokens
             case TOKEN_CLASS_NONE:
-                tClassThis = classifyInitial (c);
+                tClassThis = classifyInitial (c, &state);
                 if (tClassThis == TOKEN_CLASS_UNKNOWN)
                 {
                     return false;
