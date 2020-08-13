@@ -1,0 +1,79 @@
+~@> Summary of Goals
+
+
+Consistent naming convention
+e.g. all types use PascalCase
+
+Custom operators
+e.g. `Infix Float: (Vec: a) dot (Vec: b)`
+
+Implict type continuation
+e.g. `Vec: swap (v, Int: i, j)`
+
+Pointer declarations that are easier to understand
+e.g. `int *const a` -> `Const &Int: a`
+
+
+~@> Declarations
+
+?modifiers type: name;
+
+~> Examples
+
+> C
+
+const int *a;                   // pointer to constant int
+int *const b;                   // constant pointer to int
+const int *const c;             // constant pointer to constant int
+int d = *b;                     // d = the value at address b
+int* e = &d;                    // e = pointer to address of d
+
+Vec3* v;
+float x = v->x;
+
+double values[n];
+
+
+
+int main (int argc, char **argv)
+{
+    return 0;
+}
+
+
+
+> SugarC
+
+&Const Int: a;                  // pointer to constant int
+Const &Int: b;                  // constant pointer to int
+Const &Const Int: c;            // constant pointer to constant int
+Int: d = @b;                    // d = the value at address b
+&Int: e = &d;                   // e = pointer to address of d
+
+&Vec3: v;
+Float: x = @v.x;
+
+Array[n] Double: values;
+
+
+
+Func Int: main (Int: argc, &&Char: argv)
+{
+    return 0;
+}
+
+
+
+~@> Standard Types
+
+Bool    (i1)
+Char    (i8)
+Int     (i32)   { Both Int and UInt may be followed by any compile time number
+UInt    (i32)     If non is provided, 32 is used as the default                }
+Size    (i64)
+Half    (half)
+Float   (float)
+Double  (double)
+
+Enum
+BitField      { Acts like Enum, but members are numbered according to (1 << i) }
