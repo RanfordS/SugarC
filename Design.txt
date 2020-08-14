@@ -29,7 +29,11 @@ int d = *b;                     // d = the value at address b
 int* e = &d;                    // e = pointer to address of d
 
 Vec3* v;
-float x = v->x;
+float x = v->x;                 // `->` adds offset of and dereferences
+float* px = &v->x;
+
+struct SomeStruct* structure;
+int val = *structure->ptr;
 
 double values[n];
 
@@ -51,13 +55,28 @@ Int: d = @b;                    // d = the value at address b
 &Int: e = &d;                   // e = pointer to address of d
 
 &Vec3: v;
-Float: x = @v.x;
+Float: x = v.x;                 // `.` for pointers equivalent to C `->`
+&Float: px = &v.x;
+
+&SomeStruct: structure;
+Int: val = @structure.ptr       // @ dereferences `ptr`, not `structure`
 
 Array[n] Double: values;
+SomeStruct Array[n]: soa;       // structure of arrays declaration?
 
 
 
-Func Int: main (Int: argc, &&Char: argv)
+Int: main (Int: argc, &&Char: argv)
+{
+    return 0;
+}
+
+Define Int: main (Int: argc, &&Char: argv)
+{
+    return 0;
+}
+
+Function Int: main (Int: argc, &&Char: argv)
 {
     return 0;
 }
@@ -68,12 +87,39 @@ Func Int: main (Int: argc, &&Char: argv)
 
 Bool    (i1)
 Char    (i8)
+Byte    (i8)
 Int     (i32)   { Both Int and UInt may be followed by any compile time number
 UInt    (i32)     If non is provided, 32 is used as the default                }
-Size    (i64)
+Size    (i64)   { equivalent to size_t, i64 should always satisfy the standard }
 Half    (half)
 Float   (float)
 Double  (double)
+Void
 
 Enum
 BitField      { Acts like Enum, but members are numbered according to (1 << i) }
+
+~@> Standard Modifiers
+
+Volatile
+Restrict
+Align8 Align16 Align32 Align64
+Const
+Atomic
+Extern
+Inline
+Prefix Infix Suffix
+Sugar           { Used for macro-style declarations }
+
+~@> Control Flow Keywords
+
+switch
+    case
+    default
+    break
+do while for
+    continue
+    break
+if else
+goto label
+return
