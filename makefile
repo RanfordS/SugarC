@@ -18,7 +18,7 @@ $(TARG) : $(OFILES) $(HFILES)
 	@$(CCMP) $(LDFLAGS) -o $(TARG) $(OFILES) $(LINKLIB)
 	@echo -e '\033[1;4mDone\033[0m'
 
-$(OBJDIR)/%.o : %.cpp
+$(OBJDIR)/%.o : %.cpp $(HFILES)
 	@echo -e '\033[1;33mBuilding $<\033[0m'
 	@$(CCMP) $(CCFLAGS) -o $@ -c $<
 

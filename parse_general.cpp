@@ -33,14 +33,33 @@ TokenClass classifyInitial (char c, TokenState* state)
 
 TokenClass classifyNumber (char c, TokenState* state)
 {
-    if (0) {}
+    if ('0' <= c && c <= '9')
+        return TOKEN_CLASS_NUMBER;
+    if (c == 'x' || c == 'X')
+    {   if (state->number.hasHexMarker) return TOKEN_CLASS_UNKNOWN;
+        state->number.hasHexMarker = true;
+        return TOKEN_CLASS_NUMBER;
+    }
+    if (c == '.')
+    {   if (state->number.hasDecimal) return TOKEN_CLASS_UNKNOWN;
+        state->number.hasDecimal = true;
+        return TOKEN_CLASS_NUMBER;
+    }
+    if (c == 'e' || c == 'E')
+    {   if (state->number.hasExponential) return TOKEN_CLASS_UNKNOWN;
+        state->number.hasExponential = true;
+        return TOKEN_CLASS_NUMBER;
+    }
+    if (c == '-')
+    {
+    }
 }
 
 bool parseGeneral (FILE* file, std::vector<TokenGeneral> &tokenList)
 {
     size_t line = 1;
     size_t column = 0;
-    
+
     TokenGeneral token = {};
     TokenState state = {};
 

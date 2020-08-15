@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 enum TokenClass
 {   TOKEN_CLASS_NONE
@@ -11,12 +12,13 @@ enum TokenClass
 ,   TOKEN_CLASS_STRING
 ,   TOKEN_CLASS_OPERATOR
 ,   TOKEN_CLASS_NOUN
+,   TOKEN_CLASS_CHANGED
 ,   TOKEN_CLASS_UNKNOWN
 };
 
 struct TokenGeneral
 {
-    std::vector<char> raw;
+    std::string raw;
     TokenClass tClass;
     size_t line;
     size_t column;
@@ -31,6 +33,7 @@ union TokenState
         bool hasDecimal     : 1;
         bool hasLeadingZero : 1;
         bool hasExponential : 1;
+        bool hasNegativeExp : 1;
         bool hasHexMarker   : 1;
         //  if (hasHexMarker)
         //      assert (hasLeadingZero)
