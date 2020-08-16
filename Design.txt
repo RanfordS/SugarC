@@ -46,6 +46,15 @@ int main (int argc, char **argv)
 
 
 
+void qsort (void* base, size_t nitems, size_t size, int (*compar)(const void*, const void*);
+
+int cmpfunc (const void* a, const void* b)
+{
+    return *(int*)a - *(int*)b;
+}
+
+
+
 > SugarC
 
 &Const Int: a;                  // pointer to constant int
@@ -66,19 +75,18 @@ SomeStruct Array[n]: soa;       // structure of arrays declaration?
 
 
 
-Int: main (Int: argc, &&Char: argv)
+Function Int: main (argc, &&Char: argv)
 {
     return 0;
 }
 
-Define Int: main (Int: argc, &&Char: argv)
-{
-    return 0;
-}
 
-Function Int: main (Int: argc, &&Char: argv)
+
+Void: qsort (&Void: base, Size: nitem, size, Function Int: compar (&Const Void: a, b));
+
+Function Int: cmpfunc (Const &Void: a, b)
 {
-    return 0;
+    return @(&Int: a) - @(&Int: b);
 }
 
 
@@ -95,6 +103,7 @@ Half    (half)
 Float   (float)
 Double  (double)
 Void
+Function
 
 Enum
 BitField      { Acts like Enum, but members are numbered according to (1 << i) }
@@ -123,3 +132,57 @@ do while for
 if else
 goto label
 return
+
+~@> Operators
+
+Category:
+    Name            Symbol  Assignment
+
+Arithmetic:
+    Unary plus      +$
+    Unary minus     -$
+    Assignment      $=$
+    Addition        $+$     $+=$
+    Subtraction     $-$     $-=$
+    Multiplication  $*$     $*=$
+    Division        $/$     $/=$
+    Modulus         $%$     $%=$
+    Preincrement    ++$
+    Postincrement   $++
+    Predecrement    --$
+    Postdecrement   $--
+
+Comparitive:
+    Equality        $==$
+    Inequality      $!=$
+    Greater than    $>$
+      or equal to   $>=$
+    Less than       $<$
+      or equal to   $<=$
+
+Logical:
+    Not             !$
+    And             $&&$    $&&=$
+    Or              $||$    $||=$
+    Xor             $^^$    $^^=$
+
+Bitwise:
+    Not             ~$
+    And             $&$     $&=$
+    Or              $|$     $|=$
+    Xor             $^$     $^=$
+    Shift left      $<<$    $<<=$
+    Shift right     $>>$    $>>=$
+
+Pointer Ops:
+    Index           $[$]
+    Member of       $.$
+    Address of      &$
+    At address      @$
+
+Other:
+    Function call   $($)
+    Ternary         $?$:$
+    Cast            ($:$)
+    End statement   $;
+
