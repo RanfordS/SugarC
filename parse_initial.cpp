@@ -176,7 +176,7 @@ bool parseInitial (FILE* file, std::vector<Token>* list, Options* options)
                     }
                     current = {};
                     current.line = line;
-                    current.column = column;
+                    current.column = column - 1;
 
                     current.tClass = block ? TOKEN_CLASS_COMMENT_BLOCK
                                            : TOKEN_CLASS_COMMENT_LINE;
