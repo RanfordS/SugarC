@@ -5,4 +5,11 @@ Float: foo (Int: bar)
 	return bar + 1.0f;
 }
 
+/*	Standard main file definition,
+	nothing much here */
+Int: main (argc, &&Char: argv)
+{
+	printf ("Hello \"world\"\n");
+}
+
 // end of file

@@ -1,51 +1,7 @@
-#include <string>
-#include <vector>
+#include "parse_initial.hpp"
+#include <cstdio>
 
-enum TokenClass
-{   TOKEN_CLASS_NONE
-,   TOKEN_CLASS_COMMENT_LINE
-,   TOKEN_CLASS_COMMENT_BLOCK
-,   TOKEN_CLASS_CHAR
-,   TOKEN_CLASS_STRING
-,   TOKEN_CLASS_OPERATOR
-,   TOKEN_CLASS_NUMBER
-,   TOKEN_CLASS_NOUN
 
-,   TOKEN_CLASS_UNKNOWN
-};
-
-struct Token
-{
-    std::string raw;
-    TokenClass tClass;
-    size_t line;
-    size_t column;
-
-    union
-    {   struct
-        {   char last;
-            char secondLast;
-        }   delimited;
-        struct
-        {   size_t positionDecimal;
-            size_t positionExponential;
-            size_t positionHexMarker;
-            bool hasLeadingZero;
-        }   number;
-    };
-};
-
-struct Options
-{
-    uint8_t tabSize;
-    bool tabFixedSize;
-};
-
-#define ISNUMBER(c) ('0' <= (c) && (c) <= '9')
-#define ISLETTER(c) (('A' <= (c) && (c) <= 'Z') || ('a' <= (c) && (c) <= 'z') || (c) == '_')
-#define ISWHITE(c) ((c) == '\t' || (c) == '\n' || (c) == '\r' || (c) == ' ')
-// Excludes control characters
-#define ISASCII(c) (' ' <= (c) && (c) <= '~')
 
 TokenClass classifyInitial (char c)
 {
@@ -64,7 +20,7 @@ TokenClass classifyInitial (char c)
     return TOKEN_CLASS_UNKNOWN;
 }
 
-//
+// - //
 
 /*
  * continueTokenClass functions:
@@ -80,76 +36,110 @@ TokenClass classifyInitial (char c)
 
 bool continueCommentLine (char c, Token* token)
 {
-    if (token->delimited.last == '\n')
+    if (token->delimitedInfo.last == '\n')
     {   token->raw.erase (token->raw.size () - 1, 1);
         return false;
     }
-    token->delimited.last = c;
+    token->delimitedInfo.last = c;
     return true;
 }
 
 bool continueCommentBlock (char c, Token* token)
 {
-    if (token->delimited.secondLast == '*'
-    &&  token->delimited.last == '/')
+    if (token->delimitedInfo.secondLast == '*'
+    &&  token->delimitedInfo.last == '/')
     {   token->raw.erase (token->raw.size () - 2, 2);
         return false;
     }
 
-    token->delimited.secondLast = token->delimited.last;
-    token->delimited.last = c;
+    token->delimitedInfo.secondLast = token->delimitedInfo.last;
+    token->delimitedInfo.last = c;
     return true;
 }
 
 bool continueChar (char c, Token* token)
 {
-    if (token->delimited.last == '\''
-    &&  token->delimited.secondLast != '\\')
+    if (token->delimitedInfo.last == '\''
+    &&  token->delimitedInfo.secondLast != '\\')
         return false;
 
-    token->delimited.secondLast = token->delimited.last;
-    token->delimited.last = c;
+    token->delimitedInfo.secondLast = token->delimitedInfo.last;
+    token->delimitedInfo.last = c;
+    return true;
 }
 
 bool continueString (char c, Token* token)
 {
-    if (token->delimited.last == '\"'
-    &&  token->delimited.secondLast != '\\')
+    if (token->delimitedInfo.last == '\"'
+    &&  token->delimitedInfo.secondLast != '\\')
         return false;
 
-    token->delimited.secondLast = token->delimited.last;
-    token->delimited.last = c;
+    token->delimitedInfo.secondLast = token->delimitedInfo.last;
+    token->delimitedInfo.last = c;
+    return true;
 }
 
 bool continueOperator (char c, Token* token)
 {
+    if (token->raw[token->raw.size() - 1] == '/')
+        switch (c)
+        {   case '*': token->operatorInfo.isCommentBlock = true;
+            case '/': token->operatorInfo.isComment = true;
+            default: break;
+        }
     return classifyInitial (c) == TOKEN_CLASS_OPERATOR;
 }
 
 bool continueNumber (char c, Token* token)
 {
+    (void) token;
     return ISLETTER(c) || ISNUMBER(c) || c == '-' || c == '.';
 }
 
 bool continueNoun (char c, Token* token)
 {
+    (void) token;
     return ISLETTER(c) || ISNUMBER(c);
 }
 
-//
+bool continueCurrent (char c, Token* token)
+{
+    switch (token->tClass)
+    {
+        case TOKEN_CLASS_COMMENT_LINE:
+            return continueCommentLine (c, token);
+        case TOKEN_CLASS_COMMENT_BLOCK:
+            return continueCommentBlock (c, token);
+        case TOKEN_CLASS_CHAR:
+            return continueChar (c, token);
+        case TOKEN_CLASS_STRING:
+            return continueString (c, token);
+        case TOKEN_CLASS_OPERATOR:
+            return continueOperator (c, token);
+        case TOKEN_CLASS_NUMBER:
+            return continueNumber (c, token);
+        case TOKEN_CLASS_NOUN:
+            return continueNoun (c, token);
+        default:
+            return true;
+    }
+}
 
-bool parseInitial (FILE* file, std::vector<Token> list, Options* options)
+// - //
+
+bool parseInitial (FILE* file, std::vector<Token>* list, Options* options)
 {
     size_t line = 1;
     size_t column = 0;
 
     Token current = {};
 
-    int c;
-
     while (true)
     {
-        c = fgetc (file);
+        int ic = fgetc (file);
+        char c = ic == EOF ? '\n' : ic;
+
+        // line and column metrics
         switch (c)
         {
             case '\n':
@@ -169,7 +159,55 @@ bool parseInitial (FILE* file, std::vector<Token> list, Options* options)
                 break;
         }
 
+        // continue
+        if (current.tClass != TOKEN_CLASS_NONE)
+        {
+            if (continueCurrent (c, &current))
+            {
+                // handle comments
+                if (current.tClass == TOKEN_CLASS_OPERATOR
+                &&  current.operatorInfo.isComment)
+                {   size_t size = current.raw.size ();
+                    bool block = current.operatorInfo.isCommentBlock;
+                    if (size > 1)
+                    {   current.raw.erase (size - 1, 1);
+                        current.operatorInfo = {};
+                        list->push_back (current);
+                    }
+                    current = {};
+                    current.line = line;
+                    current.column = column;
 
-        if (c == EOF) break;
+                    current.tClass = block ? TOKEN_CLASS_COMMENT_BLOCK
+                                           : TOKEN_CLASS_COMMENT_LINE;
+                }
+                // standard behaviour
+                else
+                    current.raw.push_back (c);
+            }
+            else
+            {   list->push_back (current);
+                current = {};
+                current.line = line;
+                current.column = column;
+            }
+        }
+
+        // handle EOF
+        if (ic == EOF)
+        {   if (current.tClass != TOKEN_CLASS_NONE)
+            {   std::printf ("Delimited block was not closed before end of file\n");
+                return false;
+            }
+            return true;
+        }
+
+        // identify initial of next token
+        if (current.tClass == TOKEN_CLASS_NONE)
+            if ((current.tClass = classifyInitial (c)) != TOKEN_CLASS_NONE)
+            {   current.line = line;
+                current.column = column;
+                current.raw.push_back (c);
+            }
     }
 }

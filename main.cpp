@@ -1,29 +1,39 @@
 #include <cstdio>
-#include <vector>
+#include <sstream>
+#include "parse_initial.hpp"
 
-#include "parse_general.hpp"
-
-std::vector<const char*> tokenClassStrings =
-{   "TOKEN_CLASS_NONE"
-,   "TOKEN_CLASS_COMMENT"
-,   "TOKEN_CLASS_NUMBER"
-,   "TOKEN_CLASS_CHAR"
-,   "TOKEN_CLASS_STRING"
-,   "TOKEN_CLASS_OPERATOR"
-,   "TOKEN_CLASS_NOUN"
-,   "TOKEN_CLASS_UNKNOWN"
+std::string tokenClassNames[] =
+{   [TOKEN_CLASS_NONE]          = "NONE"
+,   [TOKEN_CLASS_COMMENT_LINE]  = "COMMENT_LINE"
+,   [TOKEN_CLASS_COMMENT_BLOCK] = "COMMENT_BLOCK"
+,   [TOKEN_CLASS_CHAR]          = "CHAR"
+,   [TOKEN_CLASS_STRING]        = "STRING"
+,   [TOKEN_CLASS_OPERATOR]      = "OPERATOR"
+,   [TOKEN_CLASS_NUMBER]        = "NUMBER"
+,   [TOKEN_CLASS_NOUN]          = "NOUN"
 };
 
 int main (int argc, char** argv)
 {
+    Options options = {};
+    options.tabFixedSize = false;
+    options.tabSize = 4;
+
     char* input_name = NULL;
     for (int i = 1; i < argc; ++i)
     {
+        std::printf ("arg[%i] = %s\n",  i, argv[i]);
         //TODO: Handle compiler options
-        if (argv[i][0] != '-')
-            input_name = argv[i];
+        if (argv[i][0] == '-')
+        {
+            int iarg;
+            if (sscanf (argv[i], "-tabsize=%i", &iarg) == 1)
+                options.tabSize = iarg;
+            else if (sscanf (argv[i], "-tabfixed") == 0)
+                options.tabFixedSize = true;
+        }
         else
-            printf ("Unhandled argument %s\n", argv[i]);
+            input_name = argv[i];
     }
     if (!input_name)
     {
@@ -33,28 +43,24 @@ int main (int argc, char** argv)
 
     FILE* input_file = fopen (input_name, "r");
     if (!input_file)
-        printf ("could not open file: %s\n", input_name);
+        std::printf ("could not open file: %s\n", input_name);
     else
     {
-        std::vector<TokenGeneral> tokens (0);
-        bool success = parseGeneral (input_file, tokens);
+        std::vector<Token> list;
+        bool success = parseInitial (input_file, &list, &options);
 
         if (!success)
-        {   std::printf ("compile failed\n");
-            return 1;
-        }
+            std::printf ("parseInitial failed\n");
+        else
+            std::printf ("parseInitial complete\n");
 
-        for (size_t i = 0; i < tokens.size (); ++i)
+        for (size_t i = 0; i < list.size (); ++i)
         {
-            //std::printf ("M1\n");
-            const char* str = tokenClassStrings[tokens[i].tClass];
-            //std::printf ("M2\n");
-            std::printf ("[%3lu,%2lu] %s |%s|\n",
-                    tokens[i].line, tokens[i].column, str, tokens[i].raw.data ());
-            //std::printf ("M3\n");
+            Token t = list[i];
+            std::printf ("[%3lu,%2lu] %13s - `%s`\n",
+                    t.line, t.column, tokenClassNames[t.tClass].c_str (), t.raw.data ());
         }
     }
-
 
     fclose (input_file);
 
