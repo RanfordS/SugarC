@@ -248,3 +248,80 @@ Other:
     Cast            ($:$)
     End statement   $;
 
+
+
+~@> Parsing
+
+// minimal file
+Int: main (argc, &&Char: argv)
+{
+    printf ("Hello\n");
+    return 0;
+}
+
+-> generalizer parse -> { delimiter errors }
+
+comment
+noun op noun bracket noun op op op noun op noun bracket
+bracket
+    noun bracket string bracket op
+    noun number op
+bracket
+
+-> bracketing parse -> { missmatching brackets }
+
+</file
+    comment
+    noun op noun
+    </()
+        noun op op op noun op noun
+    />
+    </{}
+        noun </() string /> op
+        noun number op
+    />
+/>
+
+-> statement parse ->
+
+</file
+    <comment>
+    </decl
+        </name
+            noun op noun
+        />
+        </args
+            <noun>
+            <noun op noun>
+        />
+        </body
+            <noun </() string />>
+            <noun number>
+        />
+    />
+/>
+
+-> context parse ->
+
+</file
+    <comment>
+    </decl
+        </type Int/>
+        </name main/>
+        </args
+            <</type Int/> </name argc/>>
+            <</type &&Char/> </name argv/>>
+        />
+        </body
+            </call
+                </name printf/>
+                </args
+                    <</type String/> </literal "Hello\n"/>>
+                />
+            />
+            </return
+                </type Int/> </literal 0/>
+            />
+        />
+    />
+/>
