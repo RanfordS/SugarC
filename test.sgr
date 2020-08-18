@@ -10,6 +10,7 @@ Float: foo (Int: bar)
 Int: main (argc, &&Char: argv)
 {
 	printf ("Hello \"world\"\n");
+    return 0;
 }
 
 // end of file

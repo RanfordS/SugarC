@@ -1,6 +1,5 @@
-#include <cstdio>
 #include <sstream>
-#include "parse_initial.hpp"
+#include "parse_header.hpp"
 
 std::string tokenClassNames[] =
 {   [TOKEN_CLASS_NONE]          = "NONE"
@@ -8,6 +7,7 @@ std::string tokenClassNames[] =
 ,   [TOKEN_CLASS_COMMENT_BLOCK] = "COMMENT_BLOCK"
 ,   [TOKEN_CLASS_CHAR]          = "CHAR"
 ,   [TOKEN_CLASS_STRING]        = "STRING"
+,   [TOKEN_CLASS_BRACKET]       = "BRACKET"
 ,   [TOKEN_CLASS_OPERATOR]      = "OPERATOR"
 ,   [TOKEN_CLASS_NUMBER]        = "NUMBER"
 ,   [TOKEN_CLASS_NOUN]          = "NOUN"
@@ -47,7 +47,7 @@ int main (int argc, char** argv)
     else
     {
         std::vector<Token> list;
-        bool success = parseInitial (input_file, &list, &options);
+        bool success = parseInitial (input_file, list, &options);
 
         if (!success)
             std::printf ("parseInitial failed\n");
@@ -58,7 +58,9 @@ int main (int argc, char** argv)
         {
             Token t = list[i];
             std::printf ("[%3lu,%2lu] %13s - `%s`\n",
-                    t.line, t.column, tokenClassNames[t.tClass].c_str (), t.raw.data ());
+                    t.line, t.column,
+                    tokenClassNames[t.tClass].c_str (),
+                    t.raw.data ());
         }
     }
 

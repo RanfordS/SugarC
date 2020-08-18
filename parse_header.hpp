@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -8,9 +9,12 @@ enum TokenClass
 ,   TOKEN_CLASS_COMMENT_BLOCK
 ,   TOKEN_CLASS_CHAR
 ,   TOKEN_CLASS_STRING
+,   TOKEN_CLASS_BRACKET
 ,   TOKEN_CLASS_OPERATOR
 ,   TOKEN_CLASS_NUMBER
 ,   TOKEN_CLASS_NOUN
+
+,   TOKEN_CLASS_STATEMENT
 
 ,   TOKEN_CLASS_UNKNOWN
 };
@@ -34,7 +38,11 @@ struct Token
             bool hasLeadingZero;
         }   numberInfo;
         struct
-        {   bool isComment : 1;
+        {   size_t match;
+        }   bracketInfo;
+        struct
+        {   char last;
+            bool isComment : 1;
             bool isCommentBlock : 1;
         }   operatorInfo;
     };
@@ -50,8 +58,7 @@ struct Options
 #define ISLETTER(c) (('A' <= (c) && (c) <= 'Z') || ('a' <= (c) && (c) <= 'z') || (c) == '_')
 #define ISWHITE(c) ((c) == '\t' || (c) == '\n' || (c) == '\r' || (c) == ' ')
 // Excludes control characters
+#define ISBRACKET(c) ((c) == '(' || (c) == ')' || (c) == '[' || (c) == ']' || (c) == '{' || (c) == '}')
 #define ISASCII(c) (' ' <= (c) && (c) <= '~')
-
-extern bool parseInitial (FILE* file, std::vector<Token>* list, Options* options);
-
+extern bool parseInitial (FILE* file, std::vector<Token> &list, Options* options);
 

@@ -1,4 +1,4 @@
-#include "parse_initial.hpp"
+#include "parse_header.hpp"
 #include <cstdio>
 
 
@@ -15,6 +15,8 @@ TokenClass classifyInitial (char c)
         return TOKEN_CLASS_CHAR;
     if (c == '"')
         return TOKEN_CLASS_STRING;
+    if ISBRACKET(c)
+        return TOKEN_CLASS_BRACKET;
     if ISASCII(c)
         return TOKEN_CLASS_OPERATOR;
     return TOKEN_CLASS_UNKNOWN;
@@ -81,13 +83,16 @@ bool continueString (char c, Token* token)
 
 bool continueOperator (char c, Token* token)
 {
-    if (token->raw[token->raw.size() - 1] == '/')
+    char p = token->raw[token->raw.size() - 1];
+
+    if (p == '/')
         switch (c)
         {   case '*': token->operatorInfo.isCommentBlock = true;
             case '/': token->operatorInfo.isComment = true;
-            default: break;
+            default: return true;
         }
-    return classifyInitial (c) == TOKEN_CLASS_OPERATOR;
+
+    return false;
 }
 
 bool continueNumber (char c, Token* token)
@@ -120,6 +125,8 @@ bool continueCurrent (char c, Token* token)
             return continueNumber (c, token);
         case TOKEN_CLASS_NOUN:
             return continueNoun (c, token);
+        case TOKEN_CLASS_BRACKET:
+            return false;
         default:
             return true;
     }
@@ -127,7 +134,7 @@ bool continueCurrent (char c, Token* token)
 
 // - //
 
-bool parseInitial (FILE* file, std::vector<Token>* list, Options* options)
+bool parseInitial (FILE* file, std::vector<Token> &list, Options* options)
 {
     size_t line = 1;
     size_t column = 0;
@@ -172,7 +179,7 @@ bool parseInitial (FILE* file, std::vector<Token>* list, Options* options)
                     if (size > 1)
                     {   current.raw.erase (size - 1, 1);
                         current.operatorInfo = {};
-                        list->push_back (current);
+                        list.push_back (current);
                     }
                     current = {};
                     current.line = line;
@@ -186,7 +193,7 @@ bool parseInitial (FILE* file, std::vector<Token>* list, Options* options)
                     current.raw.push_back (c);
             }
             else
-            {   list->push_back (current);
+            {   list.push_back (current);
                 current = {};
                 current.line = line;
                 current.column = column;

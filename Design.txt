@@ -53,6 +53,8 @@ int cmpfunc (const void* a, const void* b)
     return *(int*)a - *(int*)b;
 }
 
+#define ISLETTER(c) (('A' <= (c) && 'Z' <= (c)) || ('a' <= (c) && 'z' <= (c)))
+
 
 
 > SugarC
@@ -84,10 +86,69 @@ Function Int: main (argc, &&Char: argv)
 
 Void: qsort (&Void: base, Size: nitem, size, Function Int: compar (&Const Void: a, b));
 
-Function Int: cmpfunc (Const &Void: a, b)
+Function Int: cmpfunc (&Const Void: a, b)
 {
     return @(&Int: a) - @(&Int: b);
 }
+
+Macro: ISLETTER (c) {('A' <= (c) <= 'Z' || 'a' <= (c) <= 'z')}
+
+
+
+~@> Sugar Example
+
+Sugar: max (a, b)
+{
+    if (a < b)
+        return b;
+    return a;
+}
+
+Sugar: min (a, b)
+{
+    if (a < b)
+        return a;
+    return b;
+}
+
+Prefix Sugar: not (a)
+{
+    return !a;
+}
+
+// short-circuit and/or
+
+Infix Sugar: (a) and (b)
+{
+    if (a)
+        return b;
+    return a;
+}
+
+Infix Sugar: (a) or (b)
+{
+    if (!a)
+        return b;
+    return a;
+}
+
+// adding `b;` at the top of either function body will disable the short-circuit
+
+
+
+~@> Possible Loop declarations
+
+// standard C-style for loop
+for (Size: i = 0; i < n; ++i) { ... }
+
+// optional range version
+for (Size: i = 0 -> n) { ... }
+
+// range implicitly starts at 0
+for (Size: i -> n) { ... }
+
+// default type for undeclared variables is same a range end?
+for (i -> n) { ... }
 
 
 
@@ -117,8 +178,9 @@ Const
 Atomic
 Extern
 Inline
-Prefix Infix Suffix
-Sugar           { Used for macro-style declarations }
+Prefix Infix Suffix  { Custom operator declarations }
+Macro                { Used instead of #define }
+Sugar                { Full body function-style macros, supports short-circuit }
 
 ~@> Control Flow Keywords
 
