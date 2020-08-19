@@ -2,15 +2,23 @@
 #include "parse_header.hpp"
 
 std::string tokenClassNames[] =
-{   [TOKEN_CLASS_NONE]          = "NONE"
-,   [TOKEN_CLASS_COMMENT_LINE]  = "COMMENT_LINE"
-,   [TOKEN_CLASS_COMMENT_BLOCK] = "COMMENT_BLOCK"
-,   [TOKEN_CLASS_CHAR]          = "CHAR"
-,   [TOKEN_CLASS_STRING]        = "STRING"
-,   [TOKEN_CLASS_BRACKET]       = "BRACKET"
-,   [TOKEN_CLASS_OPERATOR]      = "OPERATOR"
-,   [TOKEN_CLASS_NUMBER]        = "NUMBER"
-,   [TOKEN_CLASS_NOUN]          = "NOUN"
+{   [TK_NONE]                   = "TK_NONE"
+,   [TK_BRACKET_ROUND_OPEN]     = "TK_BRACKET_ROUND_OPEN"
+,   [TK_BRACKET_ROUND_CLOSE]    = "TK_BRACKET_ROUND_CLOSE"
+,   [TK_BRACKET_SQUARE_OPEN]    = "TK_BRACKET_SQUARE_OPEN"
+,   [TK_BRACKET_SQUARE_CLOSE]   = "TK_BRACKET_SQUARE_CLOSE"
+,   [TK_BRACKET_CURLY_OPEN]     = "TK_BRACKET_CURLY_OPEN"
+,   [TK_BRACKET_CURLY_CLOSE]    = "TK_BRACKET_CURLY_CLOSE"
+,   [TK_COMMENT_LINE]           = "TK_COMMENT_LINE"
+,   [TK_COMMENT_BLOCK]          = "TK_COMMENT_BLOCK"
+,   [TK_LITERAL_CHAR]           = "TK_LITERAL_CHAR"
+,   [TK_LITERAL_STRING]         = "TK_LITERAL_STRING"
+,   [TK_LITERAL_NUMBER]         = "TK_LITERAL_NUMBER"
+,   [TK_GENERIC_NOUN]           = "TK_GENERIC_NOUN"
+,   [TK_OPERATOR]               = "TK_OPERATOR"
+,   [TK_STATEMENT]              = "TK_STATEMENT"
+
+,   [TK_INVALID]                = "TK_INVALID"
 };
 
 int main (int argc, char** argv)
@@ -57,7 +65,7 @@ int main (int argc, char** argv)
         for (size_t i = 0; i < list.size (); ++i)
         {
             Token t = list[i];
-            std::printf ("[%3lu,%2lu] %13s - `%s`\n",
+            std::printf ("[%3lu,%2lu] %24s - `%s`\n",
                     t.line, t.column,
                     tokenClassNames[t.tClass].c_str (),
                     t.raw.data ());

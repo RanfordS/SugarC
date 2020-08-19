@@ -6,20 +6,30 @@
 TokenClass classifyInitial (char c)
 {
     if ISWHITE(c)
-        return TOKEN_CLASS_NONE;
+        return TK_NONE;
     if ISNUMBER(c)
-        return TOKEN_CLASS_NUMBER;
+        return TK_LITERAL_NUMBER;
     if ISLETTER(c)
-        return TOKEN_CLASS_NOUN;
+        return TK_GENERIC_NOUN;
     if (c == '\'')
-        return TOKEN_CLASS_CHAR;
+        return TK_LITERAL_CHAR;
     if (c == '"')
-        return TOKEN_CLASS_STRING;
-    if ISBRACKET(c)
-        return TOKEN_CLASS_BRACKET;
+        return TK_LITERAL_STRING;
+    if (c == '(')
+        return TK_BRACKET_ROUND_OPEN;
+    if (c == ')')
+        return TK_BRACKET_ROUND_CLOSE;
+    if (c == '[')
+        return TK_BRACKET_SQUARE_OPEN;
+    if (c == ']')
+        return TK_BRACKET_SQUARE_CLOSE;
+    if (c == '{')
+        return TK_BRACKET_CURLY_OPEN;
+    if (c == '}')
+        return TK_BRACKET_CURLY_CLOSE;
     if ISASCII(c)
-        return TOKEN_CLASS_OPERATOR;
-    return TOKEN_CLASS_UNKNOWN;
+        return TK_OPERATOR;
+    return TK_INVALID;
 }
 
 // - //
@@ -36,99 +46,108 @@ TokenClass classifyInitial (char c)
  * Number engulfs a lot of things, this should be fine.
  */
 
-bool continueCommentLine (char c, Token* token)
+bool continueCommentLine (char c, Token &token)
 {
-    if (token->delimitedInfo.last == '\n')
-    {   token->raw.erase (token->raw.size () - 1, 1);
+    if (token.raw.back () == '\n')
+    {   // trim
+        token.raw.erase (token.raw.size () - 1, 1);
+        token.raw.erase (0, 2);
         return false;
     }
-    token->delimitedInfo.last = c;
     return true;
 }
 
-bool continueCommentBlock (char c, Token* token)
+bool continueCommentBlock (char c, Token &token)
 {
-    if (token->delimitedInfo.secondLast == '*'
-    &&  token->delimitedInfo.last == '/')
-    {   token->raw.erase (token->raw.size () - 2, 2);
+    size_t size = token.raw.size ();
+    if (size < 2) return true;
+
+    char secondLast = token.raw[size-2];
+    char last = token.raw[size-1];
+    if (secondLast == '*'
+    &&  last == '/')
+    {   // trim
+        token.raw.erase (size - 2, 2);
+        token.raw.erase (0, 2);
         return false;
     }
 
-    token->delimitedInfo.secondLast = token->delimitedInfo.last;
-    token->delimitedInfo.last = c;
     return true;
 }
 
-bool continueChar (char c, Token* token)
+bool continueChar (char c, Token &token)
 {
-    if (token->delimitedInfo.last == '\''
-    &&  token->delimitedInfo.secondLast != '\\')
-        return false;
+    //TODO: handle `\\` sequences
+    size_t size = token.raw.size ();
+    char secondLast = '\\';
+    char last = token.raw[size-1];
+    if (size > 1)
+        secondLast = token.raw[size-2];
 
-    token->delimitedInfo.secondLast = token->delimitedInfo.last;
-    token->delimitedInfo.last = c;
-    return true;
+    return secondLast == '\\' || last != '\'';
 }
 
-bool continueString (char c, Token* token)
+bool continueString (char c, Token &token)
 {
-    if (token->delimitedInfo.last == '\"'
-    &&  token->delimitedInfo.secondLast != '\\')
-        return false;
+    //TODO: handle `\\` sequences
+    size_t size = token.raw.size ();
+    char secondLast = '\\';
+    char last = token.raw[size-1];
+    if (size > 1)
+        secondLast = token.raw[size-2];
 
-    token->delimitedInfo.secondLast = token->delimitedInfo.last;
-    token->delimitedInfo.last = c;
-    return true;
+    return secondLast == '\\' || last != '\"';
 }
 
-bool continueOperator (char c, Token* token)
+bool continueOperator (char c, Token &token)
 {
-    char p = token->raw[token->raw.size() - 1];
-
-    if (p == '/')
-        switch (c)
-        {   case '*': token->operatorInfo.isCommentBlock = true;
-            case '/': token->operatorInfo.isComment = true;
-            default: return true;
+    if (token.raw[0] == '/')
+    {
+        if (c == '/')
+        {   token.tClass = TK_COMMENT_LINE;
+            return true;
         }
+        if (c == '*')
+        {   token.tClass = TK_COMMENT_BLOCK;
+            return true;
+        }
+    }
 
     return false;
 }
 
-bool continueNumber (char c, Token* token)
+bool continueNumber (char c, Token &token)
 {
     (void) token;
     return ISLETTER(c) || ISNUMBER(c) || c == '-' || c == '.';
 }
 
-bool continueNoun (char c, Token* token)
+bool continueNoun (char c, Token &token)
 {
     (void) token;
     return ISLETTER(c) || ISNUMBER(c);
 }
 
-bool continueCurrent (char c, Token* token)
+bool continueCurrent (char c, Token &token)
 {
-    switch (token->tClass)
+    switch (token.tClass)
     {
-        case TOKEN_CLASS_COMMENT_LINE:
+        case TK_COMMENT_LINE:
             return continueCommentLine (c, token);
-        case TOKEN_CLASS_COMMENT_BLOCK:
+        case TK_COMMENT_BLOCK:
             return continueCommentBlock (c, token);
-        case TOKEN_CLASS_CHAR:
+        case TK_LITERAL_CHAR:
             return continueChar (c, token);
-        case TOKEN_CLASS_STRING:
+        case TK_LITERAL_STRING:
             return continueString (c, token);
-        case TOKEN_CLASS_OPERATOR:
+        case TK_OPERATOR:
             return continueOperator (c, token);
-        case TOKEN_CLASS_NUMBER:
+        case TK_LITERAL_NUMBER:
             return continueNumber (c, token);
-        case TOKEN_CLASS_NOUN:
+        case TK_GENERIC_NOUN:
             return continueNoun (c, token);
-        case TOKEN_CLASS_BRACKET:
-            return false;
         default:
-            return true;
+            return false;
     }
 }
 
@@ -167,31 +186,10 @@ bool parseInitial (FILE* file, std::vector<Token> &list, Options* options)
         }
 
         // continue
-        if (current.tClass != TOKEN_CLASS_NONE)
+        if (current.tClass != TK_NONE)
         {
-            if (continueCurrent (c, &current))
-            {
-                // handle comments
-                if (current.tClass == TOKEN_CLASS_OPERATOR
-                &&  current.operatorInfo.isComment)
-                {   size_t size = current.raw.size ();
-                    bool block = current.operatorInfo.isCommentBlock;
-                    if (size > 1)
-                    {   current.raw.erase (size - 1, 1);
-                        current.operatorInfo = {};
-                        list.push_back (current);
-                    }
-                    current = {};
-                    current.line = line;
-                    current.column = column - 1;
-
-                    current.tClass = block ? TOKEN_CLASS_COMMENT_BLOCK
-                                           : TOKEN_CLASS_COMMENT_LINE;
-                }
-                // standard behaviour
-                else
-                    current.raw.push_back (c);
-            }
+            if (continueCurrent (c, current))
+                current.raw.push_back (c);
             else
             {   list.push_back (current);
                 current = {};
@@ -202,7 +200,7 @@ bool parseInitial (FILE* file, std::vector<Token> &list, Options* options)
 
         // handle EOF
         if (ic == EOF)
-        {   if (current.tClass != TOKEN_CLASS_NONE)
+        {   if (current.tClass != TK_NONE)
             {   std::printf ("Delimited block was not closed before end of file\n");
                 return false;
             }
@@ -210,11 +208,17 @@ bool parseInitial (FILE* file, std::vector<Token> &list, Options* options)
         }
 
         // identify initial of next token
-        if (current.tClass == TOKEN_CLASS_NONE)
-            if ((current.tClass = classifyInitial (c)) != TOKEN_CLASS_NONE)
+        if (current.tClass == TK_NONE)
+            if ((current.tClass = classifyInitial (c)) != TK_NONE)
             {   current.line = line;
                 current.column = column;
                 current.raw.push_back (c);
             }
+
+        if (current.tClass == TK_INVALID)
+        {   std::printf ("Unrecoginised character with code 0x%X at [%lu,%lu]\n",
+                (uint8_t)c, line, column);
+            return false;
+        }
     }
 }

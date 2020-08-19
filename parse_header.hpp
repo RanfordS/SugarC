@@ -4,48 +4,32 @@
 #include <vector>
 
 enum TokenClass
-{   TOKEN_CLASS_NONE
-,   TOKEN_CLASS_COMMENT_LINE
-,   TOKEN_CLASS_COMMENT_BLOCK
-,   TOKEN_CLASS_CHAR
-,   TOKEN_CLASS_STRING
-,   TOKEN_CLASS_BRACKET
-,   TOKEN_CLASS_OPERATOR
-,   TOKEN_CLASS_NUMBER
-,   TOKEN_CLASS_NOUN
+{   TK_NONE = 0
+,   TK_BRACKET_ROUND_OPEN
+,   TK_BRACKET_ROUND_CLOSE
+,   TK_BRACKET_SQUARE_OPEN
+,   TK_BRACKET_SQUARE_CLOSE
+,   TK_BRACKET_CURLY_OPEN
+,   TK_BRACKET_CURLY_CLOSE
+,   TK_COMMENT_LINE
+,   TK_COMMENT_BLOCK
+,   TK_LITERAL_CHAR
+,   TK_LITERAL_STRING
+,   TK_LITERAL_NUMBER
+,   TK_GENERIC_NOUN
+,   TK_OPERATOR
+,   TK_STATEMENT
 
-,   TOKEN_CLASS_STATEMENT
-
-,   TOKEN_CLASS_UNKNOWN
+,   TK_INVALID
 };
 
 struct Token
 {
-    std::string raw;
     TokenClass tClass;
+    std::string raw;
+    std::vector<Token> subTokens;
     size_t line;
     size_t column;
-
-    union
-    {   struct
-        {   char last;
-            char secondLast;
-        }   delimitedInfo;
-        struct
-        {   size_t positionDecimal;
-            size_t positionExponential;
-            size_t positionHexMarker;
-            bool hasLeadingZero;
-        }   numberInfo;
-        struct
-        {   size_t match;
-        }   bracketInfo;
-        struct
-        {   char last;
-            bool isComment : 1;
-            bool isCommentBlock : 1;
-        }   operatorInfo;
-    };
 };
 
 struct Options
