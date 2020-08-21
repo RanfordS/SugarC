@@ -3,7 +3,7 @@
 Float: foo (Int: bar)
 {
 	//	non ascii characters, such as ランフォード,
-	//	are not premitted outside of comments
+	//	are not permitted outside of comments or strings
 	return bar + 1.0f;
 }
 

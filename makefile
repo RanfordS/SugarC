@@ -2,7 +2,7 @@ CCFLAGS = -Wall -Wextra -Og -ggdb -std=c++11
 LDFLAGS = -Wall -Wextra -Og -ggdb -std=c++11
 LINKLIB =
 
-OBJS = main parse_initial
+OBJS = main parse_initial parse_brackets
 HDRS = parse_header
 TARG = sugarc
 CCMP = g++

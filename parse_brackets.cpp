@@ -1,46 +1,84 @@
 #include "parse_header.hpp"
 
-enum BracketedTokenClass
-{   BTCLASS_BRACKET_ROUND
-,   BTCLASS_BRACKET_SQUARE
-,   BTCLASS_BRACKET_CURLY
-,   BTCLASS_COMMENT_LINE
-,   BTCLASS_COMMENT_BLOCK
-,   BTCLASS_LITERAL_NUMBER
-,   BTCLASS_LITERAL_STRING
-,   BTCLASS_OPERATOR
-,   BTCLASS_NOUN
-,   BTCLASS_STATEMENT
-};
-
-struct BracketedToken
+bool checkBrackets (std::vector<Token> &list)
 {
-    BracketedTokenClass btClass;
-    std::vector<BracketedToken> subTokens;
-    std::string raw;
-    size_t line;
-    size_t column;
-};
+    // stack of indicies
+    std::vector<size_t> bracketStack = {};
 
-#define ISOPENBRACKET(c) ((c) == '(' || (c) == '[' || (c) == '{')
-#define ISCLOSEBRACKET(c) ((c) == ')' || (c) == ']' || (c) == '}')
+    for (size_t i = 0; i < list.size (); ++i)
+    {
+        TokenClass current = list[i].tClass;
 
+        if TK_ISBRACKET_OPEN(current)
+        {
+            bracketStack.push_back (i);
+        }
+        else if TK_ISBRACKET_CLOSE(current)
+        {
+            if (!bracketStack.size ())
+            {
+                std::printf ("l%lu,c%lu: `%s` has no matching bracket\n",
+                        list[i].line, list[i].column, list[i].raw.data ());
+                return false;
+            }
 
+            size_t j = bracketStack[bracketStack.size () - 1];
+            TokenClass matching = list[j].tClass;
+            if TK_ISBRACKET_MATCH(matching, current)
+                bracketStack.pop_back ();
+            else
+            {
+                std::printf ("l%lu,c%lu: `%s` does not match `%s` (l%lu,c%lu)\n",
+                        list[i].line, list[i].column, list[i].raw.data (),
+                        list[j].raw.data (), list[j].line, list[j].column);
+                return false;
+            }
+        }
+    }
 
-bool parseBrackets (std::vector<Token> &initial, BracketedToken* fileScope)
+    if (!bracketStack.empty ())
+    {
+        size_t count = bracketStack.size ();
+        std::printf ("unmatched bracket count: %lu\n", count);
+        for (size_t i = 0; i < count; ++i)
+        {
+            size_t j = bracketStack[i];
+            std::printf ("l%lu,c%lu: `%s`\n",
+                    list[j].line, list[j].column, list[j].raw.data ());
+        }
+    }
+
+    return true;
+}
+
+// assumes initial has been subjected to checkBrackets
+void parseBrackets (std::vector<Token> &initial, Token* fileScope)
 {
-    std::vector<BracketedToken*> bracketStack = {fileScope};
-    BracketedToken* currentScope = fileScope;
+    std::vector<Token*> bracketStack = {fileScope};
+    Token* currentScope = fileScope;
 
     for (size_t i = 0; i < initial.size (); ++i)
     {
-        if (initial[i].tClass == TOKEN_CLASS_BRACKET)
+        TokenClass tClass = initial[i].tClass;
+
+        if TK_ISBRACKET_CLOSE(tClass)
         {
-            char bracket = initial[i].raw[0];
+            bracketStack.pop_back ();
+            currentScope = bracketStack[bracketStack.size () - 1];
         }
         else
         {
             currentScope->subTokens.push_back (initial[i]);
+
+            if TK_ISBRACKET_OPEN(tClass)
+            {
+                Token* newScope =
+                &currentScope->subTokens[currentScope->subTokens.size () - 1];
+                bracketStack.push_back (newScope);
+                currentScope = newScope;
+            }
         }
     }
 }
+
+

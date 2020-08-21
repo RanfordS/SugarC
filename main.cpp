@@ -1,14 +1,17 @@
 #include <sstream>
 #include "parse_header.hpp"
 
-std::string tokenClassNames[] =
+std::string tokenClassNames[TK_COUNT] =
 {   [TK_NONE]                   = "TK_NONE"
 ,   [TK_BRACKET_ROUND_OPEN]     = "TK_BRACKET_ROUND_OPEN"
-,   [TK_BRACKET_ROUND_CLOSE]    = "TK_BRACKET_ROUND_CLOSE"
 ,   [TK_BRACKET_SQUARE_OPEN]    = "TK_BRACKET_SQUARE_OPEN"
-,   [TK_BRACKET_SQUARE_CLOSE]   = "TK_BRACKET_SQUARE_CLOSE"
 ,   [TK_BRACKET_CURLY_OPEN]     = "TK_BRACKET_CURLY_OPEN"
+,   [TK_BRACKET_ROUND_CLOSE]    = "TK_BRACKET_ROUND_CLOSE"
+,   [TK_BRACKET_SQUARE_CLOSE]   = "TK_BRACKET_SQUARE_CLOSE"
 ,   [TK_BRACKET_CURLY_CLOSE]    = "TK_BRACKET_CURLY_CLOSE"
+,   [TK_BRACKET_ROUND_BLOCK]    = "TK_BRACKET_ROUND_BLOCK"
+,   [TK_BRACKET_SQUARE_BLOCK]   = "TK_BRACKET_SQUARE_BLOCK"
+,   [TK_BRACKET_CURLY_BLOCK]    = "TK_BRACKET_CURLY_BLOCK"
 ,   [TK_COMMENT_LINE]           = "TK_COMMENT_LINE"
 ,   [TK_COMMENT_BLOCK]          = "TK_COMMENT_BLOCK"
 ,   [TK_LITERAL_CHAR]           = "TK_LITERAL_CHAR"
@@ -20,6 +23,23 @@ std::string tokenClassNames[] =
 
 ,   [TK_INVALID]                = "TK_INVALID"
 };
+
+void displayTokens (Token* root, int indent)
+{
+    for (size_t i = 0; i < root->subTokens.size (); ++i)
+    {
+        Token* t = &root->subTokens[i];
+        for (int j = 0; j < indent; ++j)
+            std::printf ("    ");
+        std::printf ("%-24s - `%s`\n",
+                tokenClassNames[t->tClass].data (),
+                t->raw.data ());
+        if TK_ISBRACKET(t->tClass)
+        {
+            displayTokens (t, indent + 1);
+        }
+    }
+}
 
 int main (int argc, char** argv)
 {
@@ -62,14 +82,14 @@ int main (int argc, char** argv)
         else
             std::printf ("parseInitial complete\n");
 
-        for (size_t i = 0; i < list.size (); ++i)
-        {
-            Token t = list[i];
-            std::printf ("[%3lu,%2lu] %24s - `%s`\n",
-                    t.line, t.column,
-                    tokenClassNames[t.tClass].c_str (),
-                    t.raw.data ());
-        }
+        std::printf ("checking brackets\n");
+        std::printf (checkBrackets (list) ? "success\n" : "fail\n");
+
+        Token root = {};
+        parseBrackets (list, &root);
+
+        std::printf ("\ntoken tree\n");
+        displayTokens (&root, 1);
     }
 
     fclose (input_file);
