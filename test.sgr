@@ -1,7 +1,10 @@
 // comment
 
+Int: a = 1;
+
 Float: foo (Int: bar)
 {
+    a <<= +1;
 	//	non ascii characters, such as ランフォード,
 	//	are not permitted outside of comments or strings
 	return bar + 1.0f;

@@ -99,19 +99,46 @@ bool continueString (char c, Token &token)
     return secondLast == '\\' || last != '\"';
 }
 
+#define OPERATORS2_COUNT 19
+std::string operators2[OPERATORS2_COUNT] =
+{   "++", "--"
+,   "+=", "-=", "*=", "/=", "%="
+,   "&=", "|=", "^="
+,   "==", "!=", "<=", ">="
+,   "&&", "||", "^^"
+,   "<<", ">>"
+};
+
+#define OPERATORS3_COUNT 5
+std::string operators3[OPERATORS3_COUNT] =
+{   "&&=", "||=", "^^="
+,   "<<=", ">>="
+};
+
 bool continueOperator (char c, Token &token)
 {
-    if (token.raw[0] == '/')
+    std::string newraw = token.raw;
+    newraw.push_back (c);
+
+    if (newraw.size () == 2)
     {
-        if (c == '/')
+        if (newraw == "//")
         {   token.tClass = TK_COMMENT_LINE;
             return true;
         }
-        if (c == '*')
+        if (newraw == "/*")
         {   token.tClass = TK_COMMENT_BLOCK;
             return true;
         }
+
+        for (size_t i = 0; i < OPERATORS2_COUNT; ++i)
+            if (newraw == operators2[i])
+                return true;
     }
+    else if (newraw.size () == 3)
+        for (size_t i = 0; i < OPERATORS3_COUNT; ++i)
+            if (newraw == operators3[i])
+                return true;
 
     return false;
 }

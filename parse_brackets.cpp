@@ -27,8 +27,7 @@ bool checkBrackets (std::vector<Token> &list)
             if TK_ISBRACKET_MATCH(matching, current)
                 bracketStack.pop_back ();
             else
-            {
-                std::printf ("l%lu,c%lu: `%s` does not match `%s` (l%lu,c%lu)\n",
+            {   std::printf ("l%lu,c%lu: `%s` does not match `%s` (l%lu,c%lu)\n",
                         list[i].line, list[i].column, list[i].raw.data (),
                         list[j].raw.data (), list[j].line, list[j].column);
                 return false;

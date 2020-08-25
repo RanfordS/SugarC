@@ -5,6 +5,12 @@ success
 
 token tree
     TK_COMMENT_LINE          - ` comment`
+    TK_GENERIC_NOUN          - `Int`
+    TK_OPERATOR              - `:`
+    TK_GENERIC_NOUN          - `a`
+    TK_OPERATOR              - `=`
+    TK_LITERAL_NUMBER        - `1`
+    TK_OPERATOR              - `;`
     TK_GENERIC_NOUN          - `Float`
     TK_OPERATOR              - `:`
     TK_GENERIC_NOUN          - `foo`
@@ -13,6 +19,11 @@ token tree
         TK_OPERATOR              - `:`
         TK_GENERIC_NOUN          - `bar`
     TK_BRACKET_CURLY_OPEN    - `{`
+        TK_GENERIC_NOUN          - `a`
+        TK_OPERATOR              - `<<=`
+        TK_OPERATOR              - `+`
+        TK_LITERAL_NUMBER        - `1`
+        TK_OPERATOR              - `;`
         TK_COMMENT_LINE          - `	non ascii characters, such as ランフォード,`
         TK_COMMENT_LINE          - `	are not permitted outside of comments or strings`
         TK_GENERIC_NOUN          - `return`
@@ -28,8 +39,7 @@ token tree
     TK_BRACKET_ROUND_OPEN    - `(`
         TK_GENERIC_NOUN          - `argc`
         TK_OPERATOR              - `,`
-        TK_OPERATOR              - `&`
-        TK_OPERATOR              - `&`
+        TK_OPERATOR              - `&&`
         TK_GENERIC_NOUN          - `Char`
         TK_OPERATOR              - `:`
         TK_GENERIC_NOUN          - `argv`
