@@ -34,7 +34,7 @@ void displayTokens (Token* root, int indent)
         std::printf ("%-24s - `%s`\n",
                 tokenClassNames[t->tClass].data (),
                 t->raw.data ());
-        if TK_ISBRACKET(t->tClass)
+        if (TK_ISBRACKET(t->tClass) || t->tClass == TK_STATEMENT)
         {
             displayTokens (t, indent + 1);
         }
@@ -76,6 +76,7 @@ int main (int argc, char** argv)
     {
         std::vector<Token> list;
         bool success = parseInitial (input_file, list, &options);
+        fclose (input_file);
 
         if (!success)
             std::printf ("parseInitial failed\n");
@@ -88,11 +89,14 @@ int main (int argc, char** argv)
         Token root = {};
         parseBrackets (list, &root);
 
-        std::printf ("\ntoken tree\n");
-        displayTokens (&root, 1);
-    }
+        Token newroot = {};
+        parseStatements (&root, &newroot);
 
-    fclose (input_file);
+        //std::printf ("\ntoken tree\n");
+        //displayTokens (&newroot, 1);
+
+        highlighter (newroot);
+    }
 
     return 0;
 }

@@ -31,6 +31,7 @@ enum TokenClass
 #define TK_ISBRACKET_OPEN(t) (TK_BRACKET_ROUND_OPEN <= (t) && (t) <= TK_BRACKET_CURLY_OPEN)
 #define TK_ISBRACKET_CLOSE(t) (TK_BRACKET_ROUND_CLOSE <= (t) && (t) <= TK_BRACKET_CURLY_CLOSE)
 #define TK_ISBRACKET_MATCH(a,b) ((a) + 3 == (b))
+#define TK_BRACKET_OPEN_TO_BLOCK(a) ((TokenClass)((a) + 6))
 
 struct Token
 {
@@ -57,3 +58,7 @@ extern bool parseInitial (FILE* file, std::vector<Token> &list, Options* options
 
 extern bool checkBrackets (std::vector<Token> &list);
 extern void parseBrackets (std::vector<Token> &initial, Token* fileScope);
+
+extern void parseStatements (Token* brackets, Token* statements);
+
+extern void highlighter (Token &root);

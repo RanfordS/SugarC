@@ -74,6 +74,7 @@ void parseBrackets (std::vector<Token> &initial, Token* fileScope)
                 Token* newScope =
                 &currentScope->subTokens[currentScope->subTokens.size () - 1];
                 bracketStack.push_back (newScope);
+                newScope->tClass = TK_BRACKET_OPEN_TO_BLOCK(tClass);
                 currentScope = newScope;
             }
         }

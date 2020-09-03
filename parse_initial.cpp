@@ -48,6 +48,7 @@ TokenClass classifyInitial (char c)
 
 bool continueCommentLine (char c, Token &token)
 {
+    (void) c;
     if (token.raw.back () == '\n')
     {   // trim
         token.raw.erase (token.raw.size () - 1, 1);
@@ -59,6 +60,7 @@ bool continueCommentLine (char c, Token &token)
 
 bool continueCommentBlock (char c, Token &token)
 {
+    (void) c;
     size_t size = token.raw.size ();
     if (size < 2) return true;
 
@@ -77,6 +79,7 @@ bool continueCommentBlock (char c, Token &token)
 
 bool continueChar (char c, Token &token)
 {
+    (void) c;
     //TODO: handle `\\` sequences
     size_t size = token.raw.size ();
     char secondLast = '\\';
@@ -89,6 +92,7 @@ bool continueChar (char c, Token &token)
 
 bool continueString (char c, Token &token)
 {
+    (void) c;
     //TODO: handle `\\` sequences
     size_t size = token.raw.size ();
     char secondLast = '\\';

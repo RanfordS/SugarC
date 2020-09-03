@@ -14,6 +14,11 @@ Float: foo (Int: bar)
 	nothing much here */
 Int: main (argc, &&Char: argv)
 {
+    for (Size: i = 0; i < 5; ++i)
+    {
+        printf ("Ping %i\n", i);
+    }
+
 	printf ("Hello \"world\"\n");
 	return 0;
 }
