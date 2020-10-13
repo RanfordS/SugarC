@@ -17,6 +17,7 @@ std::string tokenClassNames[TK_COUNT] =
 ,   [TK_LITERAL_CHAR]           = "TK_LITERAL_CHAR"
 ,   [TK_LITERAL_STRING]         = "TK_LITERAL_STRING"
 ,   [TK_LITERAL_NUMBER]         = "TK_LITERAL_NUMBER"
+,   [TK_TYPE]                   = "TK_TYPE"
 ,   [TK_GENERIC_NOUN]           = "TK_GENERIC_NOUN"
 ,   [TK_OPERATOR]               = "TK_OPERATOR"
 ,   [TK_STATEMENT]              = "TK_STATEMENT"
@@ -91,6 +92,8 @@ int main (int argc, char** argv)
 
         Token newroot = {};
         parseStatements (&root, &newroot);
+
+        parseContext (&newroot);
 
         //std::printf ("\ntoken tree\n");
         //displayTokens (&newroot, 1);

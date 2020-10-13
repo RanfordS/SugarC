@@ -8,7 +8,7 @@ void subroutine (Token &root)
 
         if (token.tClass == TK_STATEMENT)
         {
-            std::printf ("\033[%lu;%luH\033[36m>", token.line, token.column + 2);
+            std::printf ("\033[%lu;%luH\033[36m>", token.line, token.column + 3);
         }
 
         if (!token.raw.empty ())
@@ -16,6 +16,8 @@ void subroutine (Token &root)
             // move to position
             std::printf ("\033[%lu;%luH", token.line, token.column + 4);
 
+            // 1-bold, 3-italics
+            // 31-red, 32-green, 33-yellow, 34-blue, 35-purple, 36-teal
             // select format
             int form = 0;
             int color = 0;
@@ -36,6 +38,8 @@ void subroutine (Token &root)
                     color = 35; // purple
                     break;
 
+                case TK_NOUN_TYPE:
+                    form = 1; // bold
                 case TK_OPERATOR:
                     color = 33; // yellow
                     break;
@@ -56,6 +60,24 @@ void subroutine (Token &root)
         if (!token.subTokens.empty ())
         {
             subroutine (token);
+
+            if TK_ISBRACKET (token.tClass)
+            {
+                char c;
+                switch (token.tClass)
+                {
+                    case TK_BRACKET_ROUND_BLOCK:
+                        c = ')';
+                        break;
+                    case TK_BRACKET_SQUARE_BLOCK:
+                        c = ']';
+                        break;
+                    case TK_BRACKET_CURLY_BLOCK:
+                        c = '}';
+                        break;
+                }
+                std::printf ("\033[0m%c", c);
+            }
         }
     }
 }

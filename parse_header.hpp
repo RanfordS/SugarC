@@ -20,6 +20,9 @@ enum TokenClass
 ,   TK_LITERAL_STRING
 ,   TK_LITERAL_NUMBER
 ,   TK_GENERIC_NOUN
+,   TK_NOUN_FUNCTION
+,   TK_NOUN_VARIABLE
+,   TK_NOUN_TYPE
 ,   TK_OPERATOR
 ,   TK_STATEMENT
 
@@ -60,5 +63,7 @@ extern bool checkBrackets (std::vector<Token> &list);
 extern void parseBrackets (std::vector<Token> &initial, Token* fileScope);
 
 extern void parseStatements (Token* brackets, Token* statements);
+
+extern void parseContext (Token* scope);
 
 extern void highlighter (Token &root);
