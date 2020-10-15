@@ -65,7 +65,7 @@ void parseContext (Token* scope)
         Token* token = &scope->subTokens[i];
         TokenClass tClass = token->tClass;
 
-        if (tClass == TK_GENERIC_NOUN)
+        if (tClass == TK_NOUN_GENERIC)
         {
             if (token->raw == "Int"
             ||  token->raw == "Float"

@@ -1,6 +1,6 @@
 #include "parse_header.hpp"
 
-void subroutine (Token &root)
+static void subroutine (Token &root)
 {
     for (size_t i = 0; i < root.subTokens.size (); ++i)
     {
@@ -16,7 +16,7 @@ void subroutine (Token &root)
             // move to position
             std::printf ("\033[%lu;%luH", token.line, token.column + 4);
 
-            // 1-bold, 3-italics
+            // 1-bold, 3-italics, 4-underline, 5-blink, 7-inverted
             // 31-red, 32-green, 33-yellow, 34-blue, 35-purple, 36-teal
             // select format
             int form = 0;
@@ -44,6 +44,10 @@ void subroutine (Token &root)
                     color = 33; // yellow
                     break;
 
+                case TK_NOUN_GENERIC:
+                    form = 4;
+                    break;
+
                 default:
                     form = 0; // none
                     break;
@@ -54,6 +58,10 @@ void subroutine (Token &root)
                 std::printf ("\033[0;%im", form);
 
             // write token
+            if (token.tClass == TK_COMMENT_LINE)
+                std::printf ("//");
+            if (token.tClass == TK_COMMENT_BLOCK)
+                std::printf ("/*");
             std::printf ("%s", token.raw.c_str ());
         }
 
@@ -63,7 +71,7 @@ void subroutine (Token &root)
 
             if TK_ISBRACKET (token.tClass)
             {
-                char c;
+                char c = '!';
                 switch (token.tClass)
                 {
                     case TK_BRACKET_ROUND_BLOCK:
@@ -74,6 +82,8 @@ void subroutine (Token &root)
                         break;
                     case TK_BRACKET_CURLY_BLOCK:
                         c = '}';
+                        break;
+                    default:
                         break;
                 }
                 std::printf ("\033[0m%c", c);

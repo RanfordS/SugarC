@@ -253,3 +253,211 @@ bool parseInitial (FILE* file, std::vector<Token> &list, Options* options)
         }
     }
 }
+
+
+
+/* number parsing
+ * plain ints: 0 1 99
+ * binary: 0b0 0B01101010
+ * octal: 001 0777lu
+ * hex: 0x0 0XBEEF
+ * plain float: 0.0 1.0f
+ * exponential: 0e0 10.2E-3f
+ *                        ^ must be int
+ */
+
+enum NumTokenClass
+{   NTK_LEADING_ZERO
+,   NTK_NUMBER
+,   NTK_INT_SIGNED
+,   NTK_INT_UNSIGNED
+,   NTK_INT_SPECIFIED_SIGNED
+,   NTK_INT_SPECIFIED_UNSIGNED
+,   NTK_BINARY
+,   NTK_OCTAL
+,   NTK_HEXIDECIMAL
+,   NTK_DOUBLE
+,   NTK_FLOAT
+,   NTK_EXPONENTIAL_DOUBLE
+,   NTK_EXPONENTIAL_FLOAT
+};
+
+struct NumToken
+{
+    NumTokenClass tClass;
+    std::string raw;
+};
+
+void intparser (NumToken* token, char c)
+{
+    if (token->raw.empty ())
+    {
+        token->tClass = c == '0' ? NTK_LEADING_ZERO : NTK_NUMBER;
+    }
+    else
+    {
+        switch (token->tClass)
+        {
+            case NTK_LEADING_ZERO:
+                if (c == 'b' || c == 'B')
+                    token->tClass = NTK_BINARY;
+                if (c == 'x' || c == 'X')
+                    token->tClass = NTK_HEXIDECIMAL;
+                if ('0' <= c && c <= '7')
+                    token->tClass = NTK_OCTAL;
+                if (c == '.')
+                    token->tClass = NTK_DOUBLE;
+                /* no match -> error */
+                break;
+
+            case NTK_NUMBER:
+                if (c == '.')
+                    token->tClass = NTK_DOUBLE;
+                if ('0' <= c && c <= '9')
+                    token->tClass = NTK_NUMBER; // no change
+                if (c == 'e' || c == 'E')
+                    token->tClass = NTK_EXPONENTIAL_DOUBLE;
+                /* no match -> error */
+                break;
+
+            case NTK_INT_SIGNED:
+                if ('0' <= c && c <= '9')
+                    token->tClass = NTK_INT_SPECIFIED_SIGNED;
+                /* no match -> error */
+                break;
+
+            case NTK_INT_UNSIGNED:
+                if ('0' <= c && c <= '9')
+                    token->tClass = NTK_INT_SPECIFIED_UNSIGNED;
+                /* no match -> error */
+                break;
+
+            case NTK_INT_SPECIFIED_SIGNED:
+                if ('0' <= c && c <= '9')
+                    token->tClass = NTK_INT_SPECIFIED_SIGNED; // no change
+                /* no match -> error */
+                break;
+
+            case NTK_INT_SPECIFIED_UNSIGNED:
+                if ('0' <= c && c <= '9')
+                    token->tClass = NTK_INT_SPECIFIED_UNSIGNED; // no change
+                /* no match -> error */
+                break;
+
+            case NTK_BINARY:
+                if (c == '0' || c == '1')
+                    token->tClass = NTK_BINARY; // no change
+                /* no match -> error */
+                break;
+
+            case NTK_OCTAL:
+                if ('0' <= c && c <= '7')
+                    token->tClass = NTK_OCTAL; // no change
+                /* no match -> error */
+                break;
+
+            case NTK_HEXIDECIMAL:
+                if (('0' <= c && c <= '7') || ('0' <= c && c <= '7'))
+                    token->tClass = NTK_HEXIDECIMAL; // no change
+                /* no match -> error */
+                break;
+
+            case NTK_DOUBLE:
+                if (c == 'f' || c == 'F')
+                    token->tClass = NTK_FLOAT;
+                if (c == 'e' || c == 'E')
+                    token->tClass = NTK_EXPONENTIAL_DOUBLE;
+                if ('0' <= c && c <= '9')
+                    token->tClass = NTK_DOUBLE; // no change
+                /* no match -> error */
+                break;
+
+            case NTK_FLOAT:
+                // number should be finished by this point
+                /* invalid state -> error */
+                break;
+
+            case NTK_EXPONENTIAL_DOUBLE:
+                if (c == '-' || c == '+')
+                {   char p = token->raw[token->raw.size () - 1];
+                    if (p == 'e' || p == 'E')
+                        token->tClass = NTK_EXPONENTIAL_DOUBLE; // no change
+                    /* no match -> error */
+                }
+                if ('0' <= c && c <= '9')
+                    token->tClass = NTK_EXPONENTIAL_DOUBLE; // no change
+                /* no match -> error */
+                break;
+
+            case NTK_EXPONENTIAL_FLOAT:
+                // number should be finished by this point
+                /* invalid state -> error */
+                break;
+        }
+    }
+
+    token->raw.push_back (c);
+}
+
+
+
+bool isstandardtype (std::string raw)
+{
+    if (raw == "Bool"
+    ||  raw == "Char"
+    ||  raw == "Byte"
+    ||  raw == "Int"
+    ||  raw == "UInt"
+    ||  raw == "Size"
+    ||  raw == "Half"
+    ||  raw == "Float"
+    ||  raw == "Double"
+    ||  raw == "Void"
+    ||  raw == "Function"
+    ||  raw == "Enum"
+    ||  raw == "BitField")
+        return true;
+
+    int diff;
+
+    diff = raw.compare ("Int");
+    if (diff > 0 && raw.size () == 3 - diff)
+    {
+        for (size_t i = 3; i < raw.size (); ++i)
+            if (raw[i] < '0' || '9' < raw[i])
+                return false;
+        return true;
+    }
+
+    diff = raw.compare ("UInt");
+    if (diff > 0 && raw.size () == 4 - diff)
+    {
+        for (size_t i = 4; i < raw.size (); ++i)
+            if (raw[i] < '0' || '9' < raw[i])
+                return false;
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

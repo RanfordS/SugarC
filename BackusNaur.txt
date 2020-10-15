@@ -1,0 +1,5 @@
+; cast
+<expression> ::= ( <type> ":" <expression> ")"
+
+<statement> ::= <expression> ";"
+

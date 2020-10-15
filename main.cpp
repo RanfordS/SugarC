@@ -17,8 +17,10 @@ std::string tokenClassNames[TK_COUNT] =
 ,   [TK_LITERAL_CHAR]           = "TK_LITERAL_CHAR"
 ,   [TK_LITERAL_STRING]         = "TK_LITERAL_STRING"
 ,   [TK_LITERAL_NUMBER]         = "TK_LITERAL_NUMBER"
-,   [TK_TYPE]                   = "TK_TYPE"
-,   [TK_GENERIC_NOUN]           = "TK_GENERIC_NOUN"
+,   [TK_NOUN_GENERIC]           = "TK_NOUN_GENERIC"
+,   [TK_NOUN_FUNCTION]          = "TK_NOUN_FUNCTION"
+,   [TK_NOUN_VARIABLE]          = "TK_NOUN_VARIABLE"
+,   [TK_NOUN_TYPE]              = "TK_NOUN_TYPE"
 ,   [TK_OPERATOR]               = "TK_OPERATOR"
 ,   [TK_STATEMENT]              = "TK_STATEMENT"
 
