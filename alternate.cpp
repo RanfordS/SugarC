@@ -519,22 +519,37 @@ const std::vector<std::string> operators
 ,   "<<=", ">>="
 };
 
+bool stringescape (std::string text)
+{
+    size_t i = text.size ();
+    bool state = false;
+
+    while (i--)
+    {
+        if (text[i] != '\\') break;
+        state = !state;
+    }
+
+    return state;
+}
+
 struct RevisedToken
 {
     RevisedTokenClass tokenClass;
     std::string raw;
 
     // returns:
-    //  2 - token complete without error, char discarded (usually whitespace)
+    //  3 - token complete without error, char discarded (usually whitespace)
+    //  2 - token complete without error, char adds to this
     //  1 - token complete without error, char adds to next
     //  0 - token can accept more characters, char adds to this
     // -1 - token invalidated, error
     // -2 - invalid char, error
     int advance (char c)
     {
-        if (!RTK_ISDELIMITED(tokenClass) && CHAR_ISWHITESPACE(c)) return 2;
+        if (!RTK_ISDELIMITED(tokenClass) && CHAR_ISWHITESPACE(c)) return 3;
 
-        if (tokenClass == RTK_COMMENT_LINE && c == '\n') return 2;
+        if (tokenClass == RTK_COMMENT_LINE && c == '\n') return 3;
 
         switch (tokenClass)
         {
@@ -565,26 +580,32 @@ struct RevisedToken
 
                     case '(':
                         tokenClass = RTK_BRACKET_OPEN_ROUND;
+                        return 2;
                         break;
 
                     case ')':
                         tokenClass = RTK_BRACKET_CLOSE_ROUND;
+                        return 2;
                         break;
 
                     case '[':
                         tokenClass = RTK_BRACKET_OPEN_SQUARE;
+                        return 2;
                         break;
 
                     case ']':
                         tokenClass = RTK_BRACKET_CLOSE_SQUARE;
+                        return 2;
                         break;
 
                     case '{':
                         tokenClass = RTK_BRACKET_OPEN_CURLY;
+                        return 2;
                         break;
 
                     case '}':
                         tokenClass = RTK_BRACKET_CLOSE_CURLY;
+                        return 2;
                         break;
 
                     default:
@@ -654,13 +675,17 @@ struct RevisedToken
 
             case RTK_LITERAL_CHAR:
             {
-                if (c == '\'')
+                if (c > '~')
+                    return -2;
+
+                if (c == '\'' && !stringescape (raw))
                 {
-                    //TODO
                     if (!RANGE(3,raw.size (),4))
-                        return
+                        return -1;
+                    return 2;
                 }
             }
+
         }
     }
 };
