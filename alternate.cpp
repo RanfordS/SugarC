@@ -443,11 +443,227 @@ bool isstandardtype (std::string raw)
 
 
 
+enum RevisedTokenClass
+{   RTK_NONE
+//  operator
+,   RTK_OPERATOR
+//  delimited
+,   RTK_COMMENT_LINE
+,   RTK_COMMENT_BLOCK
+,   RTK_LITERAL_CHAR
+,   RTK_LITERAL_STRING
+//  brackets
+,   RTK_BRACKET_OPEN_ROUND
+,   RTK_BRACKET_OPEN_SQUARE
+,   RTK_BRACKET_OPEN_CURLY
+,   RTK_BRACKET_CLOSE_ROUND
+,   RTK_BRACKET_CLOSE_SQUARE
+,   RTK_BRACKET_CLOSE_CURLY
+,   RTK_BRACKET_BLOCK_ROUND
+,   RTK_BRACKET_BLOCK_SQUARE
+,   RTK_BRACKET_BLOCK_CURLY
+//  numbers
+,   RTK_NUMBER
+,   RTK_NUMBER_ZERO
+,   RTK_NUMBER_INT_SIGNED
+,   RTK_NUMBER_INT_UNSIGNED
+,   RTK_NUMBER_INT_SPECIFIED_SIGNED
+,   RTK_NUMBER_INT_SPECIFIED_UNSIGNED
+,   RTK_NUMBER_BINARY
+,   RTK_NUMBER_OCTAL
+,   RTK_NUMBER_HEXIDECIMAL
+,   RTK_NUMBER_DOUBLE
+,   RTK_NUMBER_FLOAT
+,   RTK_NUMBER_EXPONENTIAL_DOUBLE
+,   RTK_NUMBER_EXPONENTIAL_FLOAT
+//  nouns
+,   RTK_NOUN
+,   RTK_NOUN_KEYWORD
+,   RTK_NOUN_TYPE
+,   RTK_NOUN_VARIABLE
+//  contextual
+,   RTK_CONTEXT_OPERATOR_PREFIX
+,   RTK_CONTEXT_OPERATOR_INFIX
+,   RTK_CONTEXT_OPERATOR_SUFFIX
+,   RTK_CONTEXT_CAST
+,   RTK_CONTEXT_STATEMENT
+,   RTK_CONTEXT_SCOPE
+};
 
+#define RANGE(a,b,c) ((a) <= (b) && (b) <= (c))
 
+#define RTK_ISDELIMITED(t) RANGE(RTK_COMMENT_LINE,t,RTK_LITERAL_STRING)
 
+#define RTK_ISBRACKET(t) RANGE(RTK_BRACKET_OPEN_ROUND,t,RTK_BRACKET_BLOCK_CURLY)
 
+#define RTK_ISNUMBER(t) RANGE(RTK_NUMBER,t,RTK_NUMBER_EXPONENTIAL_FLOAT)
 
+#define RTK_ISNOUN(t) RANGE(RTK_NOUN,t,RTK_NOUN_VARIABLE)
+
+#define CHAR_ISWHITESPACE(c) \
+    ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
+
+#define CHAR_ISLETTER(c) \
+    (RANGE('A',c,'Z') || RANGE('a',c,'z') || c == '_')
+
+#define CHAR_ISVALID(c) RANGE(' ',c,'~')
+
+const std::vector<std::string> operators
+{   "++", "--"
+,   "+=", "-=", "*=", "/=", "%="
+,   "&=", "|=", "^="
+,   "==", "!=", "<=", ">="
+,   "&&", "||", "^^"
+,   "<<", ">>"
+,   "&&=", "||=", "^^="
+,   "<<=", ">>="
+};
+
+struct RevisedToken
+{
+    RevisedTokenClass tokenClass;
+    std::string raw;
+
+    // returns:
+    //  2 - token complete without error, char discarded (usually whitespace)
+    //  1 - token complete without error, char adds to next
+    //  0 - token can accept more characters, char adds to this
+    // -1 - token invalidated, error
+    // -2 - invalid char, error
+    int advance (char c)
+    {
+        if (!RTK_ISDELIMITED(tokenClass) && CHAR_ISWHITESPACE(c)) return 2;
+
+        if (tokenClass == RTK_COMMENT_LINE && c == '\n') return 2;
+
+        switch (tokenClass)
+        {
+            case RTK_NONE:
+            {
+                if (!CHAR_ISVALID(c))
+                {   return -2;
+                }
+
+                if (CHAR_ISLETTER(c))
+                    tokenClass = RTK_NOUN;
+                else
+                if (c == '0')
+                    tokenClass = RTK_NUMBER_ZERO;
+                else
+                if (RANGE('1',c,'9'))
+                    tokenClass = RTK_NUMBER;
+                else
+                switch (c)
+                {
+                    case '\'':
+                        tokenClass = RTK_LITERAL_CHAR;
+                        break;
+
+                    case '"':
+                        tokenClass = RTK_LITERAL_STRING;
+                        break;
+
+                    case '(':
+                        tokenClass = RTK_BRACKET_OPEN_ROUND;
+                        break;
+
+                    case ')':
+                        tokenClass = RTK_BRACKET_CLOSE_ROUND;
+                        break;
+
+                    case '[':
+                        tokenClass = RTK_BRACKET_OPEN_SQUARE;
+                        break;
+
+                    case ']':
+                        tokenClass = RTK_BRACKET_CLOSE_SQUARE;
+                        break;
+
+                    case '{':
+                        tokenClass = RTK_BRACKET_OPEN_CURLY;
+                        break;
+
+                    case '}':
+                        tokenClass = RTK_BRACKET_CLOSE_CURLY;
+                        break;
+
+                    default:
+                        tokenClass = RTK_OPERATOR;
+                        break;
+                }
+                return 0;
+                break;
+            }
+
+            case RTK_OPERATOR:
+            {
+                if (raw == "/")
+                    switch (c)
+                    {
+                        case '/':
+                            tokenClass = RTK_COMMENT_LINE;
+                            return 0;
+                            break;
+
+                        case '*':
+                            tokenClass = RTK_COMMENT_BLOCK;
+                            return 0;
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                std::string preview = raw;
+                raw.push_back (c);
+
+                if (raw == "//")
+                {   tokenClass = RTK_COMMENT_LINE;
+                    return 0;
+                }
+
+                if (raw == "/*")
+                {   tokenClass = RTK_COMMENT_BLOCK;
+                    return 0;
+                }
+
+                for (auto name : operators)
+                {   if (name == preview) return 0;
+                }
+
+                return 1;
+                break;
+            }
+
+            case RTK_COMMENT_LINE:
+            {
+                return c == '\n';
+                break;
+            }
+
+            case RTK_COMMENT_BLOCK:
+            {
+                if (raw.size () > 3)
+                {
+                    const char* end = raw.data () + raw.size () - 2;
+                    std::string close = "*/";
+                    if (end == close) return 1;
+                }
+                return 0;
+            }
+
+            case RTK_LITERAL_CHAR:
+            {
+                if (c == '\'')
+                {
+                    //TODO
+                    if (!RANGE(3,raw.size (),4))
+                        return
+                }
+            }
+        }
+    }
+};
 
 
 
