@@ -1,405 +1,5 @@
-#include "parse_header.hpp"
-#include <cstdio>
-
-
-
-TokenClass classifyInitial (char c)
-{
-    if ISWHITE(c)
-        return TK_NONE;
-    if ISNUMBER(c)
-        return TK_LITERAL_NUMBER;
-    if ISLETTER(c)
-        return TK_NOUN_GENERIC;
-    if (c == '\'')
-        return TK_LITERAL_CHAR;
-    if (c == '"')
-        return TK_LITERAL_STRING;
-    if (c == '(')
-        return TK_BRACKET_ROUND_OPEN;
-    if (c == ')')
-        return TK_BRACKET_ROUND_CLOSE;
-    if (c == '[')
-        return TK_BRACKET_SQUARE_OPEN;
-    if (c == ']')
-        return TK_BRACKET_SQUARE_CLOSE;
-    if (c == '{')
-        return TK_BRACKET_CURLY_OPEN;
-    if (c == '}')
-        return TK_BRACKET_CURLY_CLOSE;
-    if ISASCII(c)
-        return TK_OPERATOR;
-    return TK_INVALID;
-}
-
-// - //
-
-/*
- * continueTokenClass functions:
- *
- * All off the following function return false when the given
- * char is not part of the current token.
- *
- * Both Comment types will crop thier content strings before returning false,
- * hence omitting their respective closing sequences.
- *
- * Number engulfs a lot of things, this should be fine.
- */
-
-bool continueCommentLine (char c, Token &token)
-{
-    (void) c;
-    if (token.raw.back () == '\n')
-    {   // trim
-        token.raw.erase (token.raw.size () - 1, 1);
-        token.raw.erase (0, 2);
-        return false;
-    }
-    return true;
-}
-
-bool continueCommentBlock (char c, Token &token)
-{
-    (void) c;
-    size_t size = token.raw.size ();
-    if (size < 2) return true;
-
-    char secondLast = token.raw[size-2];
-    char last = token.raw[size-1];
-    if (secondLast == '*'
-    &&  last == '/')
-    {   // trim
-        token.raw.erase (size - 2, 2);
-        token.raw.erase (0, 2);
-        return false;
-    }
-
-    return true;
-}
-
-bool continueChar (char c, Token &token)
-{
-    (void) c;
-    //TODO: handle `\\` sequences
-    size_t size = token.raw.size ();
-    char secondLast = '\\';
-    char last = token.raw[size-1];
-    if (size > 1)
-        secondLast = token.raw[size-2];
-
-    return secondLast == '\\' || last != '\'';
-}
-
-bool continueString (char c, Token &token)
-{
-    (void) c;
-    //TODO: handle `\\` sequences
-    size_t size = token.raw.size ();
-    char secondLast = '\\';
-    char last = token.raw[size-1];
-    if (size > 1)
-        secondLast = token.raw[size-2];
-
-    return secondLast == '\\' || last != '\"';
-}
-
-#define OPERATORS2_COUNT 19
-std::string operators2[OPERATORS2_COUNT] =
-{   "++", "--"
-,   "+=", "-=", "*=", "/=", "%="
-,   "&=", "|=", "^="
-,   "==", "!=", "<=", ">="
-,   "&&", "||", "^^"
-,   "<<", ">>"
-};
-
-#define OPERATORS3_COUNT 5
-std::string operators3[OPERATORS3_COUNT] =
-{   "&&=", "||=", "^^="
-,   "<<=", ">>="
-};
-
-bool continueOperator (char c, Token &token)
-{
-    std::string newraw = token.raw;
-    newraw.push_back (c);
-
-    if (newraw.size () == 2)
-    {
-        if (newraw == "//")
-        {   token.tClass = TK_COMMENT_LINE;
-            return true;
-        }
-        if (newraw == "/*")
-        {   token.tClass = TK_COMMENT_BLOCK;
-            return true;
-        }
-
-        for (size_t i = 0; i < OPERATORS2_COUNT; ++i)
-            if (newraw == operators2[i])
-                return true;
-    }
-    else if (newraw.size () == 3)
-        for (size_t i = 0; i < OPERATORS3_COUNT; ++i)
-            if (newraw == operators3[i])
-                return true;
-
-    return false;
-}
-
-bool continueNumber (char c, Token &token)
-{
-    (void) token;
-    return ISLETTER(c) || ISNUMBER(c) || c == '-' || c == '.';
-}
-
-bool continueNoun (char c, Token &token)
-{
-    (void) token;
-    return ISLETTER(c) || ISNUMBER(c);
-}
-
-bool continueCurrent (char c, Token &token)
-{
-    switch (token.tClass)
-    {
-        case TK_COMMENT_LINE:
-            return continueCommentLine (c, token);
-        case TK_COMMENT_BLOCK:
-            return continueCommentBlock (c, token);
-        case TK_LITERAL_CHAR:
-            return continueChar (c, token);
-        case TK_LITERAL_STRING:
-            return continueString (c, token);
-        case TK_OPERATOR:
-            return continueOperator (c, token);
-        case TK_LITERAL_NUMBER:
-            return continueNumber (c, token);
-        case TK_NOUN_GENERIC:
-            return continueNoun (c, token);
-        default:
-            return false;
-    }
-}
-
-// - //
-
-bool parseInitial (FILE* file, std::vector<Token> &list, Options* options)
-{
-    size_t line = 1;
-    size_t column = 0;
-
-    Token current = {};
-
-    while (true)
-    {
-        int ic = fgetc (file);
-        char c = ic == EOF ? '\n' : ic;
-
-        // line and column metrics
-        switch (c)
-        {
-            case '\n':
-                column = 0;
-                ++line;
-                break;
-
-            case '\t':
-            {   uint8_t tab = options->tabSize;
-                if (!options->tabFixedSize)
-                    column = (column/tab)*tab;
-                column += tab;
-            }   break;
-
-            default:
-                ++column;
-                break;
-        }
-
-        // continue
-        if (current.tClass != TK_NONE)
-        {
-            if (continueCurrent (c, current))
-                current.raw.push_back (c);
-            else
-            {   list.push_back (current);
-                current = {};
-                current.line = line;
-                current.column = column;
-            }
-        }
-
-        // handle EOF
-        if (ic == EOF)
-        {   if (current.tClass != TK_NONE)
-            {   std::printf ("Delimited block was not closed before end of file\n");
-                return false;
-            }
-            return true;
-        }
-
-        // identify initial of next token
-        if (current.tClass == TK_NONE)
-            if ((current.tClass = classifyInitial (c)) != TK_NONE)
-            {   current.line = line;
-                current.column = column;
-                current.raw.push_back (c);
-            }
-
-        if (current.tClass == TK_INVALID)
-        {   std::printf ("Unrecoginised character with code 0x%X at [%lu,%lu]\n",
-                (uint8_t)c, line, column);
-            return false;
-        }
-    }
-}
-
-
-
-/* number parsing
- * plain ints: 0 1 99
- * binary: 0b0 0B01101010
- * octal: 001 0777lu
- * hex: 0x0 0XBEEF
- * plain float: 0.0 1.0f
- * exponential: 0e0 10.2E-3f
- *                        ^ must be int
- */
-
-enum NumTokenClass
-{   NTK_LEADING_ZERO
-,   NTK_NUMBER
-,   NTK_INT_SIGNED
-,   NTK_INT_UNSIGNED
-,   NTK_INT_SPECIFIED_SIGNED
-,   NTK_INT_SPECIFIED_UNSIGNED
-,   NTK_BINARY
-,   NTK_OCTAL
-,   NTK_HEXIDECIMAL
-,   NTK_DOUBLE
-,   NTK_FLOAT
-,   NTK_EXPONENTIAL_DOUBLE
-,   NTK_EXPONENTIAL_FLOAT
-};
-
-struct NumToken
-{
-    NumTokenClass tClass;
-    std::string raw;
-};
-
-void intparser (NumToken* token, char c)
-{
-    if (token->raw.empty ())
-    {
-        token->tClass = c == '0' ? NTK_LEADING_ZERO : NTK_NUMBER;
-    }
-    else
-    {
-        switch (token->tClass)
-        {
-            case NTK_LEADING_ZERO:
-                if (c == 'b' || c == 'B')
-                    token->tClass = NTK_BINARY;
-                if (c == 'x' || c == 'X')
-                    token->tClass = NTK_HEXIDECIMAL;
-                if ('0' <= c && c <= '7')
-                    token->tClass = NTK_OCTAL;
-                if (c == '.')
-                    token->tClass = NTK_DOUBLE;
-                /* no match -> error */
-                break;
-
-            case NTK_NUMBER:
-                if (c == '.')
-                    token->tClass = NTK_DOUBLE;
-                if ('0' <= c && c <= '9')
-                    token->tClass = NTK_NUMBER; // no change
-                if (c == 'e' || c == 'E')
-                    token->tClass = NTK_EXPONENTIAL_DOUBLE;
-                /* no match -> error */
-                break;
-
-            case NTK_INT_SIGNED:
-                if ('0' <= c && c <= '9')
-                    token->tClass = NTK_INT_SPECIFIED_SIGNED;
-                /* no match -> error */
-                break;
-
-            case NTK_INT_UNSIGNED:
-                if ('0' <= c && c <= '9')
-                    token->tClass = NTK_INT_SPECIFIED_UNSIGNED;
-                /* no match -> error */
-                break;
-
-            case NTK_INT_SPECIFIED_SIGNED:
-                if ('0' <= c && c <= '9')
-                    token->tClass = NTK_INT_SPECIFIED_SIGNED; // no change
-                /* no match -> error */
-                break;
-
-            case NTK_INT_SPECIFIED_UNSIGNED:
-                if ('0' <= c && c <= '9')
-                    token->tClass = NTK_INT_SPECIFIED_UNSIGNED; // no change
-                /* no match -> error */
-                break;
-
-            case NTK_BINARY:
-                if (c == '0' || c == '1')
-                    token->tClass = NTK_BINARY; // no change
-                /* no match -> error */
-                break;
-
-            case NTK_OCTAL:
-                if ('0' <= c && c <= '7')
-                    token->tClass = NTK_OCTAL; // no change
-                /* no match -> error */
-                break;
-
-            case NTK_HEXIDECIMAL:
-                if (('0' <= c && c <= '7') || ('0' <= c && c <= '7'))
-                    token->tClass = NTK_HEXIDECIMAL; // no change
-                /* no match -> error */
-                break;
-
-            case NTK_DOUBLE:
-                if (c == 'f' || c == 'F')
-                    token->tClass = NTK_FLOAT;
-                if (c == 'e' || c == 'E')
-                    token->tClass = NTK_EXPONENTIAL_DOUBLE;
-                if ('0' <= c && c <= '9')
-                    token->tClass = NTK_DOUBLE; // no change
-                /* no match -> error */
-                break;
-
-            case NTK_FLOAT:
-                // number should be finished by this point
-                /* invalid state -> error */
-                break;
-
-            case NTK_EXPONENTIAL_DOUBLE:
-                if (c == '-' || c == '+')
-                {   char p = token->raw[token->raw.size () - 1];
-                    if (p == 'e' || p == 'E')
-                        token->tClass = NTK_EXPONENTIAL_DOUBLE; // no change
-                    /* no match -> error */
-                }
-                if ('0' <= c && c <= '9')
-                    token->tClass = NTK_EXPONENTIAL_DOUBLE; // no change
-                /* no match -> error */
-                break;
-
-            case NTK_EXPONENTIAL_FLOAT:
-                // number should be finished by this point
-                /* invalid state -> error */
-                break;
-        }
-    }
-
-    token->raw.push_back (c);
-}
-
-
+#include <string>
+#include <vector>
 
 bool isstandardtype (std::string raw)
 {
@@ -504,7 +104,11 @@ enum RevisedTokenClass
     ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
 
 #define CHAR_ISLETTER(c) \
-    (RANGE('A',c,'Z') || RANGE('a',c,'z') || c == '_')
+    (RANGE('A',c,'Z') || RANGE('a',c,'z') || (c) == '_')
+
+// ops + - = * / % & | ^ ! < > ~ @ ; : ?
+// excludes .
+#define CHAR_ISOPERATOR(c) ((c) == '+' || (c) == '-' || (c) == '=' || (c) == '*' || (c) == '/' || (c) == '%' || (c) == '&' || (c) == '|' || (c) == '^' || (c) == '!' || (c) == '<' || (c) == '>' || (c) == '~' || (c) == '@' || (c) == ';' || (c) == ':' || (c) == '?')
 
 #define CHAR_ISVALID(c) RANGE(' ',c,'~')
 
@@ -533,6 +137,15 @@ bool stringescape (std::string text)
     return state;
 }
 
+enum AdavanceReturns
+{   AR_INVALID_CHAR
+,   AR_INVALID_TOKEN
+,   AR_CONTINUE
+,   AR_FINISHED_CHAR2THIS
+,   AR_FINISHED_CHAR2NEXT
+,   AR_FINISHED_CHAR2NONE
+};
+
 struct RevisedToken
 {
     RevisedTokenClass tokenClass;
@@ -545,19 +158,16 @@ struct RevisedToken
     //  0 - token can accept more characters, char adds to this
     // -1 - token invalidated, error
     // -2 - invalid char, error
-    int advance (char c)
+    AdavanceReturns advance (char c)
     {
-        if (!RTK_ISDELIMITED(tokenClass) && CHAR_ISWHITESPACE(c)) return 3;
-
-        if (tokenClass == RTK_COMMENT_LINE && c == '\n') return 3;
+        if (!RTK_ISDELIMITED(tokenClass)
+        &&  CHAR_ISWHITESPACE(c)) return AR_FINISHED_CHAR2NONE;
 
         switch (tokenClass)
         {
             case RTK_NONE:
             {
-                if (!CHAR_ISVALID(c))
-                {   return -2;
-                }
+                if (!CHAR_ISVALID(c)) return AR_INVALID_CHAR;
 
                 if (CHAR_ISLETTER(c))
                     tokenClass = RTK_NOUN;
@@ -580,85 +190,72 @@ struct RevisedToken
 
                     case '(':
                         tokenClass = RTK_BRACKET_OPEN_ROUND;
-                        return 2;
+                        return AR_FINISHED_CHAR2THIS;
                         break;
 
                     case ')':
                         tokenClass = RTK_BRACKET_CLOSE_ROUND;
-                        return 2;
+                        return AR_FINISHED_CHAR2THIS;
                         break;
 
                     case '[':
                         tokenClass = RTK_BRACKET_OPEN_SQUARE;
-                        return 2;
+                        return AR_FINISHED_CHAR2THIS;
                         break;
 
                     case ']':
                         tokenClass = RTK_BRACKET_CLOSE_SQUARE;
-                        return 2;
+                        return AR_FINISHED_CHAR2THIS;
                         break;
 
                     case '{':
                         tokenClass = RTK_BRACKET_OPEN_CURLY;
-                        return 2;
+                        return AR_FINISHED_CHAR2THIS;
                         break;
 
                     case '}':
                         tokenClass = RTK_BRACKET_CLOSE_CURLY;
-                        return 2;
+                        return AR_FINISHED_CHAR2THIS;
                         break;
 
                     default:
                         tokenClass = RTK_OPERATOR;
                         break;
                 }
-                return 0;
+                return AR_CONTINUE;
                 break;
             }
 
+            // operator
+
             case RTK_OPERATOR:
             {
-                if (raw == "/")
-                    switch (c)
-                    {
-                        case '/':
-                            tokenClass = RTK_COMMENT_LINE;
-                            return 0;
-                            break;
-
-                        case '*':
-                            tokenClass = RTK_COMMENT_BLOCK;
-                            return 0;
-                            break;
-
-                        default:
-                            break;
-                    }
-
                 std::string preview = raw;
                 raw.push_back (c);
 
                 if (raw == "//")
                 {   tokenClass = RTK_COMMENT_LINE;
-                    return 0;
+                    return AR_CONTINUE;
                 }
 
                 if (raw == "/*")
                 {   tokenClass = RTK_COMMENT_BLOCK;
-                    return 0;
+                    return AR_CONTINUE;
                 }
 
                 for (auto name : operators)
-                {   if (name == preview) return 0;
+                {   if (name == preview) return AR_CONTINUE;
                 }
 
-                return 1;
+                return AR_FINISHED_CHAR2NEXT;
                 break;
             }
 
+            // delimited
+
             case RTK_COMMENT_LINE:
             {
-                return c == '\n';
+                return c == '\n' ? AR_FINISHED_CHAR2THIS : AR_CONTINUE;
                 break;
             }
 
@@ -668,34 +265,288 @@ struct RevisedToken
                 {
                     const char* end = raw.data () + raw.size () - 2;
                     std::string close = "*/";
-                    if (end == close) return 1;
+                    if (end == close) return AR_FINISHED_CHAR2THIS;
                 }
-                return 0;
+                return AR_CONTINUE;
             }
 
             case RTK_LITERAL_CHAR:
             {
-                if (c > '~')
-                    return -2;
+                if (c > '~') return AR_INVALID_CHAR;
 
                 if (c == '\'' && !stringescape (raw))
                 {
                     if (!RANGE(3,raw.size (),4))
-                        return -1;
-                    return 2;
+                        return AR_INVALID_TOKEN;
+                    return AR_FINISHED_CHAR2THIS;
                 }
             }
 
+            // number
+
+            case RTK_NUMBER_ZERO:
+            {
+                if (c == 'b' || c == 'B')
+                {   tokenClass = RTK_NUMBER_BINARY;
+                    return AR_CONTINUE;
+                }
+                if (c == 'x' || c == 'X')
+                {   tokenClass = RTK_NUMBER_HEXIDECIMAL;
+                    return AR_CONTINUE;
+                }
+                if (RANGE('0',c,'7'))
+                {   tokenClass = RTK_NUMBER_OCTAL;
+                    return AR_CONTINUE;
+                }
+                if (c == '.')
+                {   tokenClass = RTK_NUMBER_DOUBLE;
+                    return AR_CONTINUE;
+                }
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER:
+            {
+                if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+                if (c == '.')
+                {   tokenClass = RTK_NUMBER_DOUBLE;
+                    return AR_CONTINUE;
+                }
+                if (c == 'e' || c == 'E')
+                {   tokenClass = RTK_NUMBER_EXPONENTIAL_DOUBLE;
+                    return AR_CONTINUE;
+                }
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_INT_SIGNED:
+            {
+                if (RANGE('0',c,'9'))
+                {   tokenClass = RTK_NUMBER_INT_SPECIFIED_SIGNED;
+                    return AR_CONTINUE;
+                }
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_INT_UNSIGNED:
+            {
+                if (RANGE('0',c,'9'))
+                {   tokenClass = RTK_NUMBER_INT_SPECIFIED_UNSIGNED;
+                    return AR_CONTINUE;
+                }
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_INT_SPECIFIED_SIGNED:
+            {
+                if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_INT_SPECIFIED_UNSIGNED:
+            {
+                if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_BINARY:
+            {
+                if (c == '0' || c == '1') return AR_CONTINUE;
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_OCTAL:
+            {
+                if (RANGE('0',c,'7')) return AR_CONTINUE;
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_HEXIDECIMAL:
+            {
+                if (RANGE('0',c,'9')
+                ||  RANGE('a',c,'f')
+                ||  RANGE('A',c,'F')) return AR_CONTINUE;
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_DOUBLE:
+            {
+                if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+                if (c == 'f' || c == 'F')
+                {   tokenClass = RTK_NUMBER_FLOAT;
+                    return AR_FINISHED_CHAR2THIS;
+                }
+                if (c == 'e' || c == 'E')
+                {   tokenClass = RTK_NUMBER_EXPONENTIAL_DOUBLE;
+                    return AR_CONTINUE;
+                }
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_FLOAT:
+            {
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_EXPONENTIAL_DOUBLE:
+            {
+                if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+                if (c == '-' || c == '+')
+                {   char p = raw[raw.size () - 1];
+                    if (p == 'e' || p == 'E') return AR_CONTINUE;
+                    return AR_FINISHED_CHAR2NEXT;
+                }
+                if (c == 'f' || c == 'F')
+                {   tokenClass = RTK_NUMBER_EXPONENTIAL_FLOAT;
+                    return AR_FINISHED_CHAR2THIS;
+                }
+
+                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            case RTK_NUMBER_EXPONENTIAL_FLOAT:
+            {
+                return AR_INVALID_TOKEN;
+                break;
+            }
+
+            // noun
+
+            case RTK_NOUN:
+            {
+                if (CHAR_ISLETTER(c) || RANGE('0',c,'9')) return AR_CONTINUE;
+                return AR_FINISHED_CHAR2NEXT;
+                break;
+            }
         }
     }
 };
 
 
 
+std::vector<std::string> keywords =
+{   "switch"
+,   "case"
+,   "default"
+,   "break"
+,   "do"
+,   "while"
+,   "for"
+,   "continue"
+,   "if"
+,   "else"
+,   "return"
+};
+
+void identifykeywords (std::vector<RevisedToken> &list)
+{
+    for (auto token : list)
+        if (token.tokenClass == RTK_NOUN)
+            for (auto keyword : keywords)
+                if (token.raw == keyword)
+                    token.tokenClass = RTK_NOUN_KEYWORD;
+}
 
 
 
+bool alternateparse (FILE* file, std::vector<RevisedToken> &list)
+{
+    bool success = true;
 
+    RevisedToken token = {};
+    size_t line = 1;
+    size_t column = 0;
+    uint8_t tab = 4;
+
+    int i = ~EOF;
+    while (i != EOF)
+    {
+        i = fgetc (file);
+        char c = i == EOF ? '\n' : i;
+
+        switch (c)
+        {
+            case '\n':
+                column = 0;
+                ++line;
+                break;
+
+            case '\t':
+                column = (column/tab)*tab;
+                column += tab;
+                break;
+
+            default:
+                ++column;
+                break;
+        }
+
+rerun:
+        switch (token.advance (c))
+        {
+            case AR_INVALID_CHAR:
+            case AR_INVALID_TOKEN:
+                success = false;
+                token.raw.push_back (c);
+                list.push_back (token);
+                token = {};
+                break;
+
+            case AR_CONTINUE:
+                token.raw.push_back (c);
+                break;
+
+            case AR_FINISHED_CHAR2THIS:
+                token.raw.push_back (c);
+            case AR_FINISHED_CHAR2NONE:
+                list.push_back (token);
+                token = {};
+                break;
+
+            case AR_FINISHED_CHAR2NEXT:
+                list.push_back (token);
+                token = {};
+                goto rerun;
+                break;
+        }
+    }
+
+    return true;
+}
 
 
 
