@@ -1,116 +1,25 @@
-#include <string>
-#include <vector>
+#include "alternate.hpp"
 
-bool isstandardtype (std::string raw)
-{
-    if (raw == "Bool"
-    ||  raw == "Char"
-    ||  raw == "Byte"
-    ||  raw == "Int"
-    ||  raw == "UInt"
-    ||  raw == "Size"
-    ||  raw == "Half"
-    ||  raw == "Float"
-    ||  raw == "Double"
-    ||  raw == "Void"
-    ||  raw == "Function"
-    ||  raw == "Enum"
-    ||  raw == "BitField")
-        return true;
-
-    int diff;
-
-    diff = raw.compare ("Int");
-    if (diff > 0 && raw.size () == 3 - diff)
-    {
-        for (size_t i = 3; i < raw.size (); ++i)
-            if (raw[i] < '0' || '9' < raw[i])
-                return false;
-        return true;
-    }
-
-    diff = raw.compare ("UInt");
-    if (diff > 0 && raw.size () == 4 - diff)
-    {
-        for (size_t i = 4; i < raw.size (); ++i)
-            if (raw[i] < '0' || '9' < raw[i])
-                return false;
-        return true;
-    }
-}
-
-
-
-
-
-enum RevisedTokenClass
-{   RTK_NONE
-//  operator
-,   RTK_OPERATOR
-//  delimited
-,   RTK_COMMENT_LINE
-,   RTK_COMMENT_BLOCK
-,   RTK_LITERAL_CHAR
-,   RTK_LITERAL_STRING
-//  brackets
-,   RTK_BRACKET_OPEN_ROUND
-,   RTK_BRACKET_OPEN_SQUARE
-,   RTK_BRACKET_OPEN_CURLY
-,   RTK_BRACKET_CLOSE_ROUND
-,   RTK_BRACKET_CLOSE_SQUARE
-,   RTK_BRACKET_CLOSE_CURLY
-,   RTK_BRACKET_BLOCK_ROUND
-,   RTK_BRACKET_BLOCK_SQUARE
-,   RTK_BRACKET_BLOCK_CURLY
-//  numbers
-,   RTK_NUMBER
-,   RTK_NUMBER_ZERO
-,   RTK_NUMBER_INT_SIGNED
-,   RTK_NUMBER_INT_UNSIGNED
-,   RTK_NUMBER_INT_SPECIFIED_SIGNED
-,   RTK_NUMBER_INT_SPECIFIED_UNSIGNED
-,   RTK_NUMBER_BINARY
-,   RTK_NUMBER_OCTAL
-,   RTK_NUMBER_HEXIDECIMAL
-,   RTK_NUMBER_DOUBLE
-,   RTK_NUMBER_FLOAT
-,   RTK_NUMBER_EXPONENTIAL_DOUBLE
-,   RTK_NUMBER_EXPONENTIAL_FLOAT
-//  nouns
-,   RTK_NOUN
-,   RTK_NOUN_KEYWORD
-,   RTK_NOUN_TYPE
-,   RTK_NOUN_VARIABLE
-//  contextual
-,   RTK_CONTEXT_OPERATOR_PREFIX
-,   RTK_CONTEXT_OPERATOR_INFIX
-,   RTK_CONTEXT_OPERATOR_SUFFIX
-,   RTK_CONTEXT_CAST
-,   RTK_CONTEXT_STATEMENT
-,   RTK_CONTEXT_SCOPE
+const std::vector<std::string> inbuiltTypes =
+{   "Bool"
+,   "Char"
+,   "Byte"
+,   "Int"
+,   "UInt"
+,   "Size"
+,   "Half"
+,   "Float"
+,   "Double"
+,   "Void"
+,   "Function"
+,   "Enum"
+,   "BitField"
 };
 
-#define RANGE(a,b,c) ((a) <= (b) && (b) <= (c))
-
-#define RTK_ISDELIMITED(t) RANGE(RTK_COMMENT_LINE,t,RTK_LITERAL_STRING)
-
-#define RTK_ISBRACKET(t) RANGE(RTK_BRACKET_OPEN_ROUND,t,RTK_BRACKET_BLOCK_CURLY)
-
-#define RTK_ISNUMBER(t) RANGE(RTK_NUMBER,t,RTK_NUMBER_EXPONENTIAL_FLOAT)
-
-#define RTK_ISNOUN(t) RANGE(RTK_NOUN,t,RTK_NOUN_VARIABLE)
-
-#define CHAR_ISWHITESPACE(c) \
-    ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
-
-#define CHAR_ISLETTER(c) \
-    (RANGE('A',c,'Z') || RANGE('a',c,'z') || (c) == '_')
-
-// ops + - = * / % & | ^ ! < > ~ @ ; : ?
-// excludes .
-#define CHAR_ISOPERATOR(c) ((c) == '+' || (c) == '-' || (c) == '=' || (c) == '*' || (c) == '/' || (c) == '%' || (c) == '&' || (c) == '|' || (c) == '^' || (c) == '!' || (c) == '<' || (c) == '>' || (c) == '~' || (c) == '@' || (c) == ';' || (c) == ':' || (c) == '?')
-
-#define CHAR_ISVALID(c) RANGE(' ',c,'~')
+const std::vector<std::string> inbuiltVariableTypes =
+{   "Int"
+,   "UInt"
+};
 
 const std::vector<std::string> operators
 {   "++", "--"
@@ -122,6 +31,30 @@ const std::vector<std::string> operators
 ,   "&&=", "||=", "^^="
 ,   "<<=", ">>="
 };
+
+bool isstandardtype (std::string raw)
+{
+    for (auto type : inbuiltTypes)
+    {
+        if (raw == type) return true;
+    }
+
+    int diff;
+
+    for (auto type : inbuiltVariableTypes)
+    {
+        diff = raw.compare (type);
+        if (diff > 0 && raw.size () + diff == type.size ())
+        {
+            for (size_t i = type.size (); i < raw.size (); ++i)
+                if (!RANGE('0',raw[i],'9'))
+                    return false;
+            return false;
+        }
+    }
+
+    return false;
+}
 
 bool stringescape (std::string text)
 {
@@ -137,7 +70,9 @@ bool stringescape (std::string text)
     return state;
 }
 
-enum AdavanceReturns
+
+
+enum AdvanceReturns
 {   AR_INVALID_CHAR
 ,   AR_INVALID_TOKEN
 ,   AR_CONTINUE
@@ -146,315 +81,302 @@ enum AdavanceReturns
 ,   AR_FINISHED_CHAR2NONE
 };
 
-struct RevisedToken
+AdvanceReturns tokenAdvance (Token &token, char c)
 {
-    RevisedTokenClass tokenClass;
-    std::string raw;
+    if (!TK_ISDELIMITED(token.tokenClass)
+    &&  CHAR_ISWHITESPACE(c)) return AR_FINISHED_CHAR2NONE;
 
-    // returns:
-    //  3 - token complete without error, char discarded (usually whitespace)
-    //  2 - token complete without error, char adds to this
-    //  1 - token complete without error, char adds to next
-    //  0 - token can accept more characters, char adds to this
-    // -1 - token invalidated, error
-    // -2 - invalid char, error
-    AdavanceReturns advance (char c)
+    switch (token.tokenClass)
     {
-        if (!RTK_ISDELIMITED(tokenClass)
-        &&  CHAR_ISWHITESPACE(c)) return AR_FINISHED_CHAR2NONE;
-
-        switch (tokenClass)
+        case TK_NONE:
         {
-            case RTK_NONE:
+            if (!CHAR_ISVALID(c)) return AR_INVALID_CHAR;
+
+            if (CHAR_ISLETTER(c))
+                token.tokenClass = TK_NOUN;
+            else
+            if (c == '0')
+                token.tokenClass = TK_NUMBER_ZERO;
+            else
+            if (RANGE('1',c,'9'))
+                token.tokenClass = TK_NUMBER;
+            else
+            switch (c)
             {
-                if (!CHAR_ISVALID(c)) return AR_INVALID_CHAR;
+                case '\'':
+                    token.tokenClass = TK_LITERAL_CHAR;
+                    break;
 
-                if (CHAR_ISLETTER(c))
-                    tokenClass = RTK_NOUN;
-                else
-                if (c == '0')
-                    tokenClass = RTK_NUMBER_ZERO;
-                else
-                if (RANGE('1',c,'9'))
-                    tokenClass = RTK_NUMBER;
-                else
-                switch (c)
-                {
-                    case '\'':
-                        tokenClass = RTK_LITERAL_CHAR;
-                        break;
+                case '"':
+                    token.tokenClass = TK_LITERAL_STRING;
+                    break;
 
-                    case '"':
-                        tokenClass = RTK_LITERAL_STRING;
-                        break;
+                case '(':
+                    token.tokenClass = TK_BRACKET_OPEN_ROUND;
+                    return AR_FINISHED_CHAR2THIS;
+                    break;
 
-                    case '(':
-                        tokenClass = RTK_BRACKET_OPEN_ROUND;
-                        return AR_FINISHED_CHAR2THIS;
-                        break;
+                case ')':
+                    token.tokenClass = TK_BRACKET_CLOSE_ROUND;
+                    return AR_FINISHED_CHAR2THIS;
+                    break;
 
-                    case ')':
-                        tokenClass = RTK_BRACKET_CLOSE_ROUND;
-                        return AR_FINISHED_CHAR2THIS;
-                        break;
+                case '[':
+                    token.tokenClass = TK_BRACKET_OPEN_SQUARE;
+                    return AR_FINISHED_CHAR2THIS;
+                    break;
 
-                    case '[':
-                        tokenClass = RTK_BRACKET_OPEN_SQUARE;
-                        return AR_FINISHED_CHAR2THIS;
-                        break;
+                case ']':
+                    token.tokenClass = TK_BRACKET_CLOSE_SQUARE;
+                    return AR_FINISHED_CHAR2THIS;
+                    break;
 
-                    case ']':
-                        tokenClass = RTK_BRACKET_CLOSE_SQUARE;
-                        return AR_FINISHED_CHAR2THIS;
-                        break;
+                case '{':
+                    token.tokenClass = TK_BRACKET_OPEN_CURLY;
+                    return AR_FINISHED_CHAR2THIS;
+                    break;
 
-                    case '{':
-                        tokenClass = RTK_BRACKET_OPEN_CURLY;
-                        return AR_FINISHED_CHAR2THIS;
-                        break;
+                case '}':
+                    token.tokenClass = TK_BRACKET_CLOSE_CURLY;
+                    return AR_FINISHED_CHAR2THIS;
+                    break;
 
-                    case '}':
-                        tokenClass = RTK_BRACKET_CLOSE_CURLY;
-                        return AR_FINISHED_CHAR2THIS;
-                        break;
-
-                    default:
-                        tokenClass = RTK_OPERATOR;
-                        break;
-                }
-                return AR_CONTINUE;
-                break;
+                default:
+                    token.tokenClass = TK_OPERATOR;
+                    break;
             }
+            return AR_CONTINUE;
+            break;
+        }
 
-            // operator
+        // operator
 
-            case RTK_OPERATOR:
-            {
-                std::string preview = raw;
-                raw.push_back (c);
+        case TK_OPERATOR:
+        {
+            std::string preview = token.raw;
+            token.raw.push_back (c);
 
-                if (raw == "//")
-                {   tokenClass = RTK_COMMENT_LINE;
-                    return AR_CONTINUE;
-                }
-
-                if (raw == "/*")
-                {   tokenClass = RTK_COMMENT_BLOCK;
-                    return AR_CONTINUE;
-                }
-
-                for (auto name : operators)
-                {   if (name == preview) return AR_CONTINUE;
-                }
-
-                return AR_FINISHED_CHAR2NEXT;
-                break;
-            }
-
-            // delimited
-
-            case RTK_COMMENT_LINE:
-            {
-                return c == '\n' ? AR_FINISHED_CHAR2THIS : AR_CONTINUE;
-                break;
-            }
-
-            case RTK_COMMENT_BLOCK:
-            {
-                if (raw.size () > 3)
-                {
-                    const char* end = raw.data () + raw.size () - 2;
-                    std::string close = "*/";
-                    if (end == close) return AR_FINISHED_CHAR2THIS;
-                }
+            if (token.raw == "//")
+            {   token.tokenClass = TK_COMMENT_LINE;
                 return AR_CONTINUE;
             }
 
-            case RTK_LITERAL_CHAR:
-            {
-                if (c > '~') return AR_INVALID_CHAR;
-
-                if (c == '\'' && !stringescape (raw))
-                {
-                    if (!RANGE(3,raw.size (),4))
-                        return AR_INVALID_TOKEN;
-                    return AR_FINISHED_CHAR2THIS;
-                }
+            if (token.raw == "/*")
+            {   token.tokenClass = TK_COMMENT_BLOCK;
+                return AR_CONTINUE;
             }
 
-            // number
-
-            case RTK_NUMBER_ZERO:
-            {
-                if (c == 'b' || c == 'B')
-                {   tokenClass = RTK_NUMBER_BINARY;
-                    return AR_CONTINUE;
-                }
-                if (c == 'x' || c == 'X')
-                {   tokenClass = RTK_NUMBER_HEXIDECIMAL;
-                    return AR_CONTINUE;
-                }
-                if (RANGE('0',c,'7'))
-                {   tokenClass = RTK_NUMBER_OCTAL;
-                    return AR_CONTINUE;
-                }
-                if (c == '.')
-                {   tokenClass = RTK_NUMBER_DOUBLE;
-                    return AR_CONTINUE;
-                }
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
+            for (auto name : operators)
+            {   if (name == preview) return AR_CONTINUE;
             }
 
-            case RTK_NUMBER:
-            {
-                if (RANGE('0',c,'9')) return AR_CONTINUE;
+            return AR_FINISHED_CHAR2NEXT;
+            break;
+        }
 
-                if (c == '.')
-                {   tokenClass = RTK_NUMBER_DOUBLE;
-                    return AR_CONTINUE;
-                }
-                if (c == 'e' || c == 'E')
-                {   tokenClass = RTK_NUMBER_EXPONENTIAL_DOUBLE;
-                    return AR_CONTINUE;
-                }
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
+        // delimited
+
+        case TK_COMMENT_LINE:
+        {
+            return c == '\n' ? AR_FINISHED_CHAR2THIS : AR_CONTINUE;
+            break;
+        }
+
+        case TK_COMMENT_BLOCK:
+        {
+            if (token.raw.size () > 3)
+            {
+                const char* end = token.raw.data () + token.raw.size () - 2;
+                std::string close = "*/";
+                if (end == close) return AR_FINISHED_CHAR2THIS;
             }
+            return AR_CONTINUE;
+        }
 
-            case RTK_NUMBER_INT_SIGNED:
+        case TK_LITERAL_CHAR:
+        {
+            if (c > '~') return AR_INVALID_CHAR;
+
+            if (c == '\'' && !stringescape (token.raw))
             {
-                if (RANGE('0',c,'9'))
-                {   tokenClass = RTK_NUMBER_INT_SPECIFIED_SIGNED;
-                    return AR_CONTINUE;
-                }
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_INT_UNSIGNED:
-            {
-                if (RANGE('0',c,'9'))
-                {   tokenClass = RTK_NUMBER_INT_SPECIFIED_UNSIGNED;
-                    return AR_CONTINUE;
-                }
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_INT_SPECIFIED_SIGNED:
-            {
-                if (RANGE('0',c,'9')) return AR_CONTINUE;
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_INT_SPECIFIED_UNSIGNED:
-            {
-                if (RANGE('0',c,'9')) return AR_CONTINUE;
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_BINARY:
-            {
-                if (c == '0' || c == '1') return AR_CONTINUE;
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_OCTAL:
-            {
-                if (RANGE('0',c,'7')) return AR_CONTINUE;
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_HEXIDECIMAL:
-            {
-                if (RANGE('0',c,'9')
-                ||  RANGE('a',c,'f')
-                ||  RANGE('A',c,'F')) return AR_CONTINUE;
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_DOUBLE:
-            {
-                if (RANGE('0',c,'9')) return AR_CONTINUE;
-
-                if (c == 'f' || c == 'F')
-                {   tokenClass = RTK_NUMBER_FLOAT;
-                    return AR_FINISHED_CHAR2THIS;
-                }
-                if (c == 'e' || c == 'E')
-                {   tokenClass = RTK_NUMBER_EXPONENTIAL_DOUBLE;
-                    return AR_CONTINUE;
-                }
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_FLOAT:
-            {
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_EXPONENTIAL_DOUBLE:
-            {
-                if (RANGE('0',c,'9')) return AR_CONTINUE;
-
-                if (c == '-' || c == '+')
-                {   char p = raw[raw.size () - 1];
-                    if (p == 'e' || p == 'E') return AR_CONTINUE;
-                    return AR_FINISHED_CHAR2NEXT;
-                }
-                if (c == 'f' || c == 'F')
-                {   tokenClass = RTK_NUMBER_EXPONENTIAL_FLOAT;
-                    return AR_FINISHED_CHAR2THIS;
-                }
-
-                if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            case RTK_NUMBER_EXPONENTIAL_FLOAT:
-            {
-                return AR_INVALID_TOKEN;
-                break;
-            }
-
-            // noun
-
-            case RTK_NOUN:
-            {
-                if (CHAR_ISLETTER(c) || RANGE('0',c,'9')) return AR_CONTINUE;
-                return AR_FINISHED_CHAR2NEXT;
-                break;
+                if (!RANGE(3,token.raw.size (),4))
+                    return AR_INVALID_TOKEN;
+                return AR_FINISHED_CHAR2THIS;
             }
         }
+
+        // number
+
+        case TK_NUMBER_ZERO:
+        {
+            if (c == 'b' || c == 'B')
+            {   token.tokenClass = TK_NUMBER_BINARY;
+                return AR_CONTINUE;
+            }
+            if (c == 'x' || c == 'X')
+            {   token.tokenClass = TK_NUMBER_HEXIDECIMAL;
+                return AR_CONTINUE;
+            }
+            if (RANGE('0',c,'7'))
+            {   token.tokenClass = TK_NUMBER_OCTAL;
+                return AR_CONTINUE;
+            }
+            if (c == '.')
+            {   token.tokenClass = TK_NUMBER_DOUBLE;
+                return AR_CONTINUE;
+            }
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER:
+        {
+            if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+            if (c == '.')
+            {   token.tokenClass = TK_NUMBER_DOUBLE;
+                return AR_CONTINUE;
+            }
+            if (c == 'e' || c == 'E')
+            {   token.tokenClass = TK_NUMBER_EXPONENTIAL_DOUBLE;
+                return AR_CONTINUE;
+            }
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_INT_SIGNED:
+        {
+            if (RANGE('0',c,'9'))
+            {   token.tokenClass = TK_NUMBER_INT_SPECIFIED_SIGNED;
+                return AR_CONTINUE;
+            }
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_INT_UNSIGNED:
+        {
+            if (RANGE('0',c,'9'))
+            {   token.tokenClass = TK_NUMBER_INT_SPECIFIED_UNSIGNED;
+                return AR_CONTINUE;
+            }
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_INT_SPECIFIED_SIGNED:
+        {
+            if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_INT_SPECIFIED_UNSIGNED:
+        {
+            if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_BINARY:
+        {
+            if (c == '0' || c == '1') return AR_CONTINUE;
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_OCTAL:
+        {
+            if (RANGE('0',c,'7')) return AR_CONTINUE;
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_HEXIDECIMAL:
+        {
+            if (RANGE('0',c,'9')
+            ||  RANGE('a',c,'f')
+            ||  RANGE('A',c,'F')) return AR_CONTINUE;
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_DOUBLE:
+        {
+            if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+            if (c == 'f' || c == 'F')
+            {   token.tokenClass = TK_NUMBER_FLOAT;
+                return AR_FINISHED_CHAR2THIS;
+            }
+            if (c == 'e' || c == 'E')
+            {   token.tokenClass = TK_NUMBER_EXPONENTIAL_DOUBLE;
+                return AR_CONTINUE;
+            }
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_FLOAT:
+        {
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_EXPONENTIAL_DOUBLE:
+        {
+            if (RANGE('0',c,'9')) return AR_CONTINUE;
+
+            if (c == '-' || c == '+')
+            {   char p = token.raw[token.raw.size () - 1];
+                if (p == 'e' || p == 'E') return AR_CONTINUE;
+                return AR_FINISHED_CHAR2NEXT;
+            }
+            if (c == 'f' || c == 'F')
+            {   token.tokenClass = TK_NUMBER_EXPONENTIAL_FLOAT;
+                return AR_FINISHED_CHAR2THIS;
+            }
+
+            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        case TK_NUMBER_EXPONENTIAL_FLOAT:
+        {
+            return AR_INVALID_TOKEN;
+            break;
+        }
+
+        // noun
+
+        case TK_NOUN:
+        {
+            if (CHAR_ISLETTER(c) || RANGE('0',c,'9')) return AR_CONTINUE;
+            return AR_FINISHED_CHAR2NEXT;
+            break;
+        }
     }
-};
+}
 
 
 
@@ -472,25 +394,27 @@ std::vector<std::string> keywords =
 ,   "return"
 };
 
-void identifykeywords (std::vector<RevisedToken> &list)
+void identifykeywords (std::vector<Token> &list)
 {
     for (auto token : list)
-        if (token.tokenClass == RTK_NOUN)
+        if (token.tokenClass == TK_NOUN)
             for (auto keyword : keywords)
                 if (token.raw == keyword)
-                    token.tokenClass = RTK_NOUN_KEYWORD;
+                    token.tokenClass = TK_NOUN_KEYWORD;
 }
 
-
-
-bool alternateparse (FILE* file, std::vector<RevisedToken> &list)
+bool alternateparse (FILE* file, std::vector<Token> &list)
 {
     bool success = true;
 
-    RevisedToken token = {};
+    Token token = {};
     size_t line = 1;
     size_t column = 0;
     uint8_t tab = 4;
+
+#define PUSH list.push_back (token)
+#define PUSH_COND {if (token.tokenClass != TK_NONE) PUSH;}
+#define RESET {token = {}; token.line = line; token.column = column;}
 
     int i = ~EOF;
     while (i != EOF)
@@ -516,14 +440,13 @@ bool alternateparse (FILE* file, std::vector<RevisedToken> &list)
         }
 
 rerun:
-        switch (token.advance (c))
+        switch (tokenAdvance (token, c))
         {
             case AR_INVALID_CHAR:
             case AR_INVALID_TOKEN:
                 success = false;
                 token.raw.push_back (c);
-                list.push_back (token);
-                token = {};
+                PUSH; RESET;
                 break;
 
             case AR_CONTINUE:
@@ -533,17 +456,19 @@ rerun:
             case AR_FINISHED_CHAR2THIS:
                 token.raw.push_back (c);
             case AR_FINISHED_CHAR2NONE:
-                list.push_back (token);
-                token = {};
+                PUSH_COND; RESET;
                 break;
 
             case AR_FINISHED_CHAR2NEXT:
-                list.push_back (token);
-                token = {};
+                PUSH_COND; RESET;
                 goto rerun;
                 break;
         }
     }
+
+#undef RESET
+#undef PUSH_COND
+#undef PUSH
 
     return true;
 }
