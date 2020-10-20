@@ -16,7 +16,7 @@ Int: main (argc, &&Char: argv)
 {
     for (Size: i = 0; i < 5; ++i)
     {
-        printf ("Ping %i\n", i);
+        io.printf ("Ping %i\n", i);
     }
 
 	printf ("Hello \"world\"\n");

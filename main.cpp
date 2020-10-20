@@ -1,10 +1,13 @@
+#include "alternate.hpp"
 #include <sstream>
 
 int main (int argc, char** argv)
 {
+    /*
     Options options = {};
     options.tabFixedSize = false;
     options.tabSize = 4;
+    */
 
     char* input_name = NULL;
     for (int i = 1; i < argc; ++i)
@@ -13,11 +16,13 @@ int main (int argc, char** argv)
         //TODO: Handle compiler options
         if (argv[i][0] == '-')
         {
+            /*
             int iarg;
             if (sscanf (argv[i], "-tabsize=%i", &iarg) == 1)
                 options.tabSize = iarg;
             else if (sscanf (argv[i], "-tabfixed") == 0)
                 options.tabFixedSize = true;
+            */
         }
         else
             input_name = argv[i];
@@ -33,7 +38,9 @@ int main (int argc, char** argv)
         std::printf ("could not open file: %s\n", input_name);
     else
     {
-        highlighter (newroot);
+        std::vector<Token> root;
+        alternateparse (input_file, root);
+        highlighter (root);
     }
 
     return 0;

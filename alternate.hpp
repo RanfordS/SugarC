@@ -15,7 +15,7 @@
 
 #define CHAR_ISVALID(c) RANGE(' ',c,'~')
 
-extern const std::vector<std::string> inbuiltTypes;;
+extern const std::vector<std::string> inbuiltTypes;
 extern const std::vector<std::string> inbuiltVariableTypes;
 
 extern bool isstandardtype (std::string raw);
@@ -69,6 +69,12 @@ enum TokenClass
 
 #define TK_ISDELIMITED(t) RANGE(TK_COMMENT_LINE,t,TK_LITERAL_STRING)
 #define TK_ISBRACKET(t) RANGE(TK_BRACKET_OPEN_ROUND,t,TK_BRACKET_BLOCK_CURLY)
+#define TK_ISBRACKET_OPEN(t) \
+    RANGE(TK_BRACKET_OPEN_ROUND,t,TK_BRACKET_OPEN_CURLY)
+#define TK_ISBRACKET_CLOSE(t) \
+    RANGE(TK_BRACKET_CLOSE_ROUND,t,TK_BRACKET_CLOSE_CURLY)
+#define TK_ISBRACKET_MATCHING(a,b) \
+    ((a) + (TK_BRACKET_CLOSE_ROUND - TK_BRACKET_OPEN_ROUND) == (b))
 #define TK_ISNUMBER(t) RANGE(TK_NUMBER,t,TK_NUMBER_EXPONENTIAL_FLOAT)
 #define TK_ISNOUN(t) RANGE(TK_NOUN,t,TK_NOUN_VARIABLE)
 
@@ -85,6 +91,7 @@ struct Token
     size_t line;
     size_t column;
     std::vector<Token> subtokens;
+    size_t range;
 };
 
 extern std::vector<std::string> keywords;
@@ -96,5 +103,6 @@ extern bool alternateparse (FILE* file, std::vector<Token> &list);
 
 
 
+extern void highlighter (std::vector<Token> &root);
 
 

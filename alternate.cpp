@@ -14,6 +14,7 @@ const std::vector<std::string> inbuiltTypes =
 ,   "Function"
 ,   "Enum"
 ,   "BitField"
+,   "Struct"
 };
 
 const std::vector<std::string> inbuiltVariableTypes =
@@ -154,14 +155,14 @@ AdvanceReturns tokenAdvance (Token &token, char c)
         case TK_OPERATOR:
         {
             std::string preview = token.raw;
-            token.raw.push_back (c);
+            preview.push_back (c);
 
-            if (token.raw == "//")
+            if (preview == "//")
             {   token.tokenClass = TK_COMMENT_LINE;
                 return AR_CONTINUE;
             }
 
-            if (token.raw == "/*")
+            if (preview == "/*")
             {   token.tokenClass = TK_COMMENT_BLOCK;
                 return AR_CONTINUE;
             }
@@ -203,6 +204,14 @@ AdvanceReturns tokenAdvance (Token &token, char c)
                     return AR_INVALID_TOKEN;
                 return AR_FINISHED_CHAR2THIS;
             }
+        }
+
+        case TK_LITERAL_STRING:
+        {
+            if (c == '"' && !stringescape (token.raw))
+                return AR_FINISHED_CHAR2THIS;
+            return AR_CONTINUE;
+            break;
         }
 
         // number
@@ -376,6 +385,8 @@ AdvanceReturns tokenAdvance (Token &token, char c)
             break;
         }
     }
+
+    return AR_INVALID_TOKEN;
 }
 
 
@@ -396,21 +407,26 @@ std::vector<std::string> keywords =
 
 void identifykeywords (std::vector<Token> &list)
 {
-    for (auto token : list)
+    for (auto &token : list)
         if (token.tokenClass == TK_NOUN)
+        {
             for (auto keyword : keywords)
                 if (token.raw == keyword)
                     token.tokenClass = TK_NOUN_KEYWORD;
+
+            if (isstandardtype (token.raw))
+                token.tokenClass = TK_NOUN_TYPE;
+        }
 }
 
 bool alternateparse (FILE* file, std::vector<Token> &list)
 {
     bool success = true;
+    uint8_t tab = 4;
 
     Token token = {};
     size_t line = 1;
     size_t column = 0;
-    uint8_t tab = 4;
 
 #define PUSH list.push_back (token)
 #define PUSH_COND {if (token.tokenClass != TK_NONE) PUSH;}
@@ -439,6 +455,8 @@ bool alternateparse (FILE* file, std::vector<Token> &list)
                 break;
         }
 
+        if (token.tokenClass == TK_NONE) RESET;
+
 rerun:
         switch (tokenAdvance (token, c))
         {
@@ -455,6 +473,9 @@ rerun:
 
             case AR_FINISHED_CHAR2THIS:
                 token.raw.push_back (c);
+                PUSH_COND; RESET;
+                break;
+
             case AR_FINISHED_CHAR2NONE:
                 PUSH_COND; RESET;
                 break;
@@ -470,11 +491,39 @@ rerun:
 #undef PUSH_COND
 #undef PUSH
 
-    return true;
+    if (token.tokenClass != TK_NONE) success = false;
+
+    identifykeywords (list);
+
+    return success;
 }
 
 
 
+bool bracketsvalidator (std::vector<Token> &list, Token* offender)
+{
+    std::vector<TokenClass> stack = {};
 
+    for (auto &token : list)
+    {
+        if (TK_ISBRACKET(token.tokenClass))
+        {
+            if (TK_ISBRACKET_OPEN(token.tokenClass))
+            {
+                stack.push_back (token.tokenClass);
+            }
+            else
+            if (TK_ISBRACKET_MATCHING(stack.back (), token.tokenClass))
+            {
+                stack.pop_back ();
+            }
+            else
+            {   offender = &token;
+            }
+        }
+    }
+
+    return true;
+}
 
 
