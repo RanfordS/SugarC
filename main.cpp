@@ -40,6 +40,29 @@ int main (int argc, char** argv)
     {
         std::vector<Token> root;
         alternateparse (input_file, root);
+
+        std::vector<BracketOffence> bracketOffences = {};
+        if (bracketsvalidator (root, bracketOffences))
+            std::printf ("brackets match\n");
+        else
+        for (auto offence : bracketOffences)
+        {
+            if (offence.number == 1)
+            {
+                Token t = offence.tokens[0];
+                std::printf ("unpaired: [%lu,%lu] %s\n",
+                        t.line, t.column, t.raw.data ());
+            }
+            else
+            {
+                Token l = offence.tokens[0];
+                Token r = offence.tokens[1];
+                std::printf ("missmatch: [%lu,%lu] %s - [%lu,%lu] %s\n",
+                        l.line, l.column, l.raw.data (),
+                        r.line, r.column, r.raw.data ());
+            }
+        }
+
         highlighter (root);
     }
 

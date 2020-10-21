@@ -91,7 +91,6 @@ struct Token
     size_t line;
     size_t column;
     std::vector<Token> subtokens;
-    size_t range;
 };
 
 extern std::vector<std::string> keywords;
@@ -100,6 +99,17 @@ extern void identifykeywords (std::vector<Token> &list);
 
 
 extern bool alternateparse (FILE* file, std::vector<Token> &list);
+
+
+
+struct BracketOffence
+{
+    uint8_t number;
+    Token tokens[2];
+};
+
+extern bool bracketsvalidator
+(std::vector<Token> &list, std::vector<BracketOffence> &offenders);
 
 
 

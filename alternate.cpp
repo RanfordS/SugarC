@@ -345,11 +345,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
             break;
         }
 
-        case TK_NUMBER_FLOAT:
-        {
-            return AR_INVALID_TOKEN;
-            break;
-        }
+        // unreachable TK_NUMBER_FLOAT
 
         case TK_NUMBER_EXPONENTIAL_DOUBLE:
         {
@@ -370,11 +366,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
             break;
         }
 
-        case TK_NUMBER_EXPONENTIAL_FLOAT:
-        {
-            return AR_INVALID_TOKEN;
-            break;
-        }
+        // unreachable TK_NUMBER_EXPONENTIAL_FLOAT
 
         // noun
 
@@ -382,6 +374,16 @@ AdvanceReturns tokenAdvance (Token &token, char c)
         {
             if (CHAR_ISLETTER(c) || RANGE('0',c,'9')) return AR_CONTINUE;
             return AR_FINISHED_CHAR2NEXT;
+            break;
+        }
+
+        // debug
+
+        default:
+        {
+            std::printf ("PROGRAMMER ERROR IN %s\n", __FUNCTION__);
+            std::printf ("Reached unhandled state: %i\n", token.tokenClass);
+            return AR_INVALID_TOKEN;
             break;
         }
     }
@@ -500,30 +502,56 @@ rerun:
 
 
 
-bool bracketsvalidator (std::vector<Token> &list, Token* offender)
+bool bracketsvalidator
+(std::vector<Token> &list, std::vector<BracketOffence> &offenders)
 {
-    std::vector<TokenClass> stack = {};
+    std::vector<Token> stack = {};
 
-    for (auto &token : list)
+    for (auto token : list)
     {
-        if (TK_ISBRACKET(token.tokenClass))
+        if (TK_ISBRACKET_OPEN(token.tokenClass))
         {
-            if (TK_ISBRACKET_OPEN(token.tokenClass))
+            stack.push_back (token);
+        }
+        else
+        if (TK_ISBRACKET_CLOSE(token.tokenClass))
+        {
+            if (stack.empty ())
             {
-                stack.push_back (token.tokenClass);
+                BracketOffence offence = {};
+                offence.number = 1;
+                offence.tokens[0] = token;
+                offenders.push_back (offence);
             }
             else
-            if (TK_ISBRACKET_MATCHING(stack.back (), token.tokenClass))
+            if (!TK_ISBRACKET_MATCHING(stack.back().tokenClass,
+                                              token.tokenClass))
             {
+                BracketOffence offence;
+                offence.number = 2;
+                offence.tokens[0] = stack.back ();
+                offence.tokens[1] = token;
+                offenders.push_back (offence);
+
                 stack.pop_back ();
             }
             else
-            {   offender = &token;
+            {
+                stack.pop_back ();
             }
         }
     }
 
-    return true;
+    // any remaining stack entries must be offenders
+    for (auto token : stack)
+    {
+        BracketOffence offence = {};
+        offence.number = 1;
+        offence.tokens[0] = token;
+        offenders.push_back (offence);
+    }
+
+    return offenders.empty ();
 }
 
 
