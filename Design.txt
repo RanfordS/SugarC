@@ -55,6 +55,9 @@ int cmpfunc (const void* a, const void* b)
 
 #define ISLETTER(c) (('A' <= (c) && 'Z' <= (c)) || ('a' <= (c) && 'z' <= (c)))
 
+int a;
+float b = 1.0f + *(float*)(void*)(&a);
+
 
 
 > SugarC
@@ -92,6 +95,9 @@ Function Int: cmpfunc (&Const Void: a, b)
 }
 
 Macro: ISLETTER (c) {('A' <= (c) <= 'Z' || 'a' <= (c) <= 'z')}
+
+Int: a;
+Float: b = 1.0f + (!Float: a);
 
 
 
@@ -246,7 +252,26 @@ Other:
     Function call   $($)
     Ternary         $?$:$
     Cast            ($:$)
+    Reinterpret     (!$:$)
     End statement   $;
+
+By Priority:
+->   $++ $-- $($) $[$] $.$
+<-   ++$ --$ +$ -$ !$ ~$ @$ &$
+->   $*$ $/$ $%$
+->   $+$ $-$
+->   $<<$ $>>$
+->   $<$ $<=$ $>$ $>=$
+->   $==$ $!=$
+->   $&$
+->   $^$
+->   $|$
+->   $&&$
+->   $^^$
+->   $||$
+<-   $?$:$
+<-   $=$ $+=$ $-=$ $*=$ $/=$ $%=$ $<<=$ $>>=$ $&=$ $^=$ $|=$
+->   $,$
 
 
 

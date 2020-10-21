@@ -4,7 +4,7 @@
 static void recursor (Token &token)
 {
     std::printf ("\033[%lu;%luH", token.line, token.column + 4);
-    //
+
     // 1-bold, 3-italics, 4-underline, 5-blink, 7-inverted
     // 31-red, 32-green, 33-yellow, 34-blue, 35-purple, 36-teal
 
@@ -22,7 +22,8 @@ static void recursor (Token &token)
     {   std::printf ("\033[0;1;34m");
     }
     else
-    if (TK_ISBRACKET(token.tokenClass))
+    if (TK_ISBRACKET_OPEN(token.tokenClass)
+    ||  TK_ISBRACKET_CLOSE(token.tokenClass))
     {   std::printf ("\033[0;34m");
     }
     else
@@ -43,6 +44,10 @@ static void recursor (Token &token)
     }
     else
     {   std::printf ("\033[0m");
+    }
+
+    if (TK_ISBRACKET_BLOCK(token.tokenClass))
+    {   std::printf ("\033[D\033[0;5;34m>");
     }
 
     std::printf ("%s", token.raw.data ());

@@ -58,14 +58,98 @@ enum TokenClass
 ,   TK_NOUN_KEYWORD
 ,   TK_NOUN_TYPE
 ,   TK_NOUN_VARIABLE
+,   TK_NOUN_OPERATOR
 //  contextual
+,   TK_CONTEXT_FILE
 ,   TK_CONTEXT_OPERATOR_PREFIX
 ,   TK_CONTEXT_OPERATOR_INFIX
 ,   TK_CONTEXT_OPERATOR_SUFFIX
+,   TK_CONTEXT_OPERATOR_TERNARY
+,   TK_CONTEXT_INDEX
+,   TK_CONTEXT_CALL
+,   TK_CONTEXT_TYPE
 ,   TK_CONTEXT_CAST
+,   TK_CONTEXT_CAST_REINTERP
 ,   TK_CONTEXT_STATEMENT
 ,   TK_CONTEXT_SCOPE
+,   TK_CONTEXT_DEFINITION_TYPE
+,   TK_CONTEXT_DECLARATION_VARIABLE
+,   TK_CONTEXT_DEFINITION_FUNCTION
+,   TK_CONTEXT_DECLARATION_FUNCTION
 };
+
+/* TK_CONTEXT_* Family
+ *
+ * All context tokens should have empty strings and atleast one subtoken.
+ *
+ * OPERATOR_PREFIX:
+ * - 2 subtokens
+ *   [0] = operator token
+ *   [1] = right-hand argument
+ *
+ * OPERATOR_INFIX:
+ * - 3 subtokens
+ *   [0] = left-hand argument
+ *   [1] = operator token
+ *   [2] = right-hand argument
+ *
+ * OPERATOR_SUFFIX:
+ * - 2 subtokens
+ *   [0] = left-hand argument
+ *   [1] = operator token
+ *
+ * OPERATOR_TERNARY:
+ * - 5 subtokens
+ *   [0] = first argument
+ *   [1] = left-hand operator token
+ *   [2] = second argument
+ *   [3] = right-hand operator token
+ *   [4] = third argument
+ *
+ * INDEX:
+ * - 2 subtokens
+ *   [0] = left-hand argument
+ *   [1] = square bracket block
+ *
+ * CALL:
+ * - 2 subtokens
+ *   [0] = left-hand argument
+ *   [1] = round bracket block
+ *
+ * TYPE:
+ * - variable subtokens
+ * - last subtoken is the actual type
+ * - all other subtokens are modifiers
+ *
+ * CAST:
+ * - 5 subtokens
+ *   [0] = left-hand round bracket
+ *   [1] = left-hand contextual type argument
+ *   [2] = colon
+ *   [3] = right-hand argument
+ *   [4] = right-hand round bracket
+ *
+ * CAST:
+ * - 6 subtokens
+ *   [0] = left-hand round bracket
+ *   [1] = exclamation mark
+ *   [2] = left-hand contextual type argument
+ *   [3] = colon
+ *   [4] = right-hand argument
+ *   [5] = right-hand round bracket
+ *
+ * STATEMENT:
+ * - 2 subtokens
+ *   [0] = expression
+ *   [1] = semi-colon
+ *
+ * DECLARATION_VARIABLE:
+ * 2 subtokens
+ *   [0] = left-hand contextual type argument
+ *   [1] = variable name or plain assignment (infix)
+ *
+ *
+ */
 
 #define TK_ISDELIMITED(t) RANGE(TK_COMMENT_LINE,t,TK_LITERAL_STRING)
 #define TK_ISBRACKET(t) RANGE(TK_BRACKET_OPEN_ROUND,t,TK_BRACKET_BLOCK_CURLY)
@@ -73,8 +157,12 @@ enum TokenClass
     RANGE(TK_BRACKET_OPEN_ROUND,t,TK_BRACKET_OPEN_CURLY)
 #define TK_ISBRACKET_CLOSE(t) \
     RANGE(TK_BRACKET_CLOSE_ROUND,t,TK_BRACKET_CLOSE_CURLY)
+#define TK_ISBRACKET_BLOCK(t) \
+    RANGE(TK_BRACKET_BLOCK_ROUND,t,TK_BRACKET_BLOCK_CURLY)
 #define TK_ISBRACKET_MATCHING(a,b) \
     ((a) + (TK_BRACKET_CLOSE_ROUND - TK_BRACKET_OPEN_ROUND) == (b))
+#define TK_BRACKET_OPEN_TO_BLOCK(a) \
+    ((TokenClass)((a) + (TK_BRACKET_BLOCK_ROUND - TK_BRACKET_OPEN_ROUND)))
 #define TK_ISNUMBER(t) RANGE(TK_NUMBER,t,TK_NUMBER_EXPONENTIAL_FLOAT)
 #define TK_ISNOUN(t) RANGE(TK_NOUN,t,TK_NOUN_VARIABLE)
 
@@ -111,6 +199,7 @@ struct BracketOffence
 extern bool bracketsvalidator
 (std::vector<Token> &list, std::vector<BracketOffence> &offenders);
 
+extern Token bracket (std::vector<Token> &list);
 
 
 extern void highlighter (std::vector<Token> &root);

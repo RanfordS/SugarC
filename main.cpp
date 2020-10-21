@@ -42,28 +42,36 @@ int main (int argc, char** argv)
         alternateparse (input_file, root);
 
         std::vector<BracketOffence> bracketOffences = {};
-        if (bracketsvalidator (root, bracketOffences))
-            std::printf ("brackets match\n");
-        else
-        for (auto offence : bracketOffences)
+        if (!bracketsvalidator (root, bracketOffences))
         {
-            if (offence.number == 1)
+            for (auto offence : bracketOffences)
             {
-                Token t = offence.tokens[0];
-                std::printf ("unpaired: [%lu,%lu] %s\n",
-                        t.line, t.column, t.raw.data ());
-            }
-            else
-            {
-                Token l = offence.tokens[0];
-                Token r = offence.tokens[1];
-                std::printf ("missmatch: [%lu,%lu] %s - [%lu,%lu] %s\n",
-                        l.line, l.column, l.raw.data (),
-                        r.line, r.column, r.raw.data ());
+                if (offence.number == 1)
+                {
+                    Token t = offence.tokens[0];
+                    std::printf ("unpaired: [%lu,%lu] %s\n",
+                            t.line, t.column, t.raw.data ());
+                }
+                else
+                {
+                    Token l = offence.tokens[0];
+                    Token r = offence.tokens[1];
+                    std::printf ("missmatch: [%lu,%lu] %s - [%lu,%lu] %s\n",
+                            l.line, l.column, l.raw.data (),
+                            r.line, r.column, r.raw.data ());
+                }
             }
         }
 
-        highlighter (root);
+        Token newroot = bracket (root);
+
+        for (auto token : newroot.subtokens)
+        {
+            bool isblock = TK_ISBRACKET_BLOCK(token.tokenClass);
+            std::printf ("%s (%i)\n", isblock ? "`BLOCK`": token.raw.data (), token.tokenClass);
+        }
+
+        highlighter (newroot.subtokens);
     }
 
     return 0;

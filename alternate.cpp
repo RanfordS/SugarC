@@ -29,6 +29,7 @@ const std::vector<std::string> operators
 ,   "==", "!=", "<=", ">="
 ,   "&&", "||", "^^"
 ,   "<<", ">>"
+,   "?:"
 ,   "&&=", "||=", "^^="
 ,   "<<=", ">>="
 };
@@ -553,5 +554,44 @@ bool bracketsvalidator
 
     return offenders.empty ();
 }
+
+
+
+Token bracket (std::vector<Token> &list)
+{
+    Token root = {};
+    root.tokenClass = TK_CONTEXT_FILE;
+
+    std::vector<Token*> stack = {&root};
+
+    for (auto token : list)
+    {
+        if (TK_ISBRACKET_OPEN(token.tokenClass))
+        {
+            Token child = {};
+            child.tokenClass = TK_BRACKET_OPEN_TO_BLOCK(token.tokenClass);
+            child.line = token.line;
+            child.column = token.column;
+
+            stack.back ()->subtokens.push_back (child);
+            // add a pointer to the new token into the stack
+            stack.push_back (&stack.back ()->subtokens.back ());
+        }
+
+        stack.back ()->subtokens.push_back (token);
+
+        if (TK_ISBRACKET_CLOSE(token.tokenClass))
+        {
+            stack.pop_back ();
+        }
+    }
+
+    return root;
+}
+
+
+
+
+
 
 
