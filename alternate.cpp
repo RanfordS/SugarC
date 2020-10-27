@@ -590,8 +590,62 @@ Token bracket (std::vector<Token> &list)
 }
 
 
+/* header seeking
+ *
+ * type definitions:
+ * Struct: Noun {}
+ * Enum: Noun {}
+ * BitField: Noun {}
+ *
+ * function declarations:
+ * Function Type: Noun ();
+ * Prefix Type: Noun ();
+ * Infix Type: () Noun ();
+ * Suffix Type: () Noun;
+ */
 
+/* root seeking
+ *
+ * header seekings
+ *
+ * function definitions:
+ * Function Type: Noun () {}
+ * Prefix Type: Noun () {}
+ * Infix Type: () Noun () {}
+ * Suffix Type: () Noun {}
+ *
+ * variable declarations:
+ * Type: Noun (= ConstExpression) (, Noun (= ConstExpression))*;
+ */
 
+/* struct seeking
+ *
+ * member declaration:
+ * Type: Noun (, Noun)*;
+ */
 
+/* enum/bitfield seeking
+ *
+ * member declaration:
+ * Noun (= ConstExpression) (, Noun (= ConstExpression))* (,)
+ */
 
+/* scope seeking
+ *
+ * variable declaration:
+ * Type: Noun;
+ * Type: Noun = Expression;
+ *
+ * statement:
+ * Expression;
+ *
+ * branching:
+ * Keyword () Statement
+ * Keyword () {}
+ *
+ * [while|for] () [Statement|{}]
+ * do [Statement|{}] while ();
+ * switch () {}
+ * if () [Statement|{}] (else [Statement|{}])
+ */
 

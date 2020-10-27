@@ -22,6 +22,8 @@ e.g. `int *const a` -> `Const &Int: a`
 
 > C
 
+#define IMPORTANT_CONST 3.14
+
 const int *a;                   // pointer to constant int
 int *const b;                   // constant pointer to int
 const int *const c;             // constant pointer to constant int
@@ -62,6 +64,8 @@ float b = 1.0f + *(float*)(void*)(&a);
 
 > SugarC
 
+Sugar: IMPORTANT_CONST = 3.14;
+
 &Const Int: a;                  // pointer to constant int
 Const &Int: b;                  // constant pointer to int
 Const &Const Int: c;            // constant pointer to constant int
@@ -94,7 +98,10 @@ Function Int: cmpfunc (&Const Void: a, b)
     return @(&Int: a) - @(&Int: b);
 }
 
-Macro: ISLETTER (c) {('A' <= (c) <= 'Z' || 'a' <= (c) <= 'z')}
+Function Sugar: ISLETTER (c)
+{
+    return 'A' <= c <= 'Z' || 'a' <= c <= 'z';
+}
 
 Int: a;
 Float: b = 1.0f + (!Float: a);
@@ -142,6 +149,22 @@ Infix Sugar: (a) or (b)
 
 
 
+// example sguar usage
+
+c = a or b;
+f = (c+1) and (d-1);
+
+// expands to
+
+if (!a) c = b;
+else c = a;
+
+temp = c+1;
+if (temp) f = d-1;
+else f = temp;
+
+
+
 ~@> Possible Loop declarations
 
 // standard C-style for loop
@@ -155,6 +178,7 @@ for (Size: i -> n) { ... }
 
 // default type for undeclared variables is same a range end?
 for (i -> n) { ... }
+// this would fly in the face of explicit declaration principles
 
 
 
