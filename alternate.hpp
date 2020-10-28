@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #define RANGE(a,b,c) ((a) <= (b) && (b) <= (c))
 
@@ -7,7 +8,7 @@
     ((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\r')
 
 #define CHAR_ISLETTER(c) \
-    (RANGE('A',c,'Z') || RANGE('a',c,'z') || (c) == '_')
+    (RANGE('A',c,'Z') || RANGE('a',c,'z') || (c) == '$' || (c) == '_' || (c) == '\\')
 
 // ops + - = * / % & | ^ ! < > ~ @ ; : ?
 // excludes .
@@ -15,8 +16,8 @@
 
 #define CHAR_ISVALID(c) RANGE(' ',c,'~')
 
-extern const std::vector<std::string> inbuiltTypes;
-extern const std::vector<std::string> inbuiltVariableTypes;
+extern const std::vector <std::string> inbuiltTypes;
+extern const std::vector <std::string> inbuiltVariableTypes;
 
 extern bool isstandardtype (std::string raw);
 
@@ -80,27 +81,49 @@ enum TokenClass
 ,   TK_CONTEXT_DECLARATION_FUNCTION
 */
 ,   TK_CONTEXT_FILE
+//  - (declaration | definition)*
 ,   TK_CONTEXT_EXPRESSION_PREFIX
+//  - operator, expression
 ,   TK_CONTEXT_EXPRESSION_INFIX
+//  - expression, operator, expression
 ,   TK_CONTEXT_EXPRESSION_SUFFIX
+//  - expression, operator
 ,   TK_CONTEXT_EXPRESSION_TERNARY
+//  - expression, operator, expression, operator, expression
 ,   TK_CONTEXT_EXPRESSION_INDEX
+//  - expression, square block
 ,   TK_CONTEXT_EXPRESSION_CALL
+//  - expression, round block
 ,   TK_CONTEXT_EXPRESSION_CAST
+//  - round open, type, colon, expression, round close
 ,   TK_CONTEXT_EXPRESSION_CAST_REINTERP
+//  - round open, exclaimation, type, colon, expression, round close
 ,   TK_CONTEXT_DECLARATION_VARIABLE
+//  - type, colon, (noun | expression)+
 ,   TK_CONTEXT_DECLARATION_FUNCTION
+//  - Function, type, colon, noun, round block, semicolon
 ,   TK_CONTEXT_DECLARATION_PREFIX
+//  - Prefix, type, colon, noun, round block, semicolon
 ,   TK_CONTEXT_DECLARATION_INFIX
+//  - Infix, type, colon, round block, noun, round block, semicolon
 ,   TK_CONTEXT_DECLARATION_SUFFIX
+//  - Suffix, type, colon, round block, noun, semicolon
 ,   TK_CONTEXT_DEFINITION_TYPE
+//  - type, colon, name, curly block
 ,   TK_CONTEXT_DEFINITION_FUNCTION
+//  - Function, type, colon, noun, round block, curly block
 ,   TK_CONTEXT_DEFINITION_PREFIX
+//  - Prefix, type, colon, noun, round block, curly block
 ,   TK_CONTEXT_DEFINITION_INFIX
+//  - Infix, type, colon, round block, noun, round block, curly block
 ,   TK_CONTEXT_DEFINITION_SUFFIX
+//  - Suffix, type, colon, round block, noun, curly block
 ,   TK_CONTEXT_DECLARATION_MEMBER
+//  - noun | expression
 ,   TK_CONTEXT_STATEMENT
+//  - expression, semi-colon
 ,   TK_CONTEXT_BRANCHING
+//  - keyword, round block, curly block | statement
 };
 
 /* TK_CONTEXT_* Family
@@ -193,7 +216,7 @@ enum TokenClass
 
 
 
-extern const std::vector<std::string> operators;
+extern const std::vector <std::string> operators;
 
 bool stringescape (std::string text);
 
@@ -206,12 +229,12 @@ struct Token
     std::vector<Token> subtokens;
 };
 
-extern std::vector<std::string> keywords;
-extern void identifykeywords (std::vector<Token> &list);
+extern const std::vector <std::string> keywords;
+extern void identifykeywords (std::vector <Token> &list);
 
 
 
-extern bool alternateparse (FILE* file, std::vector<Token> &list);
+extern bool alternateparse (FILE* file, std::vector <Token> &list);
 
 
 
@@ -222,11 +245,11 @@ struct BracketOffence
 };
 
 extern bool bracketsvalidator
-(std::vector<Token> &list, std::vector<BracketOffence> &offenders);
+(std::vector <Token> &list, std::vector <BracketOffence> &offenders);
 
-extern Token bracket (std::vector<Token> &list);
+extern Token bracket (std::vector <Token> &list);
 
 
-extern void highlighter (std::vector<Token> &root);
+extern void highlighter (std::vector <Token> &root);
 
 

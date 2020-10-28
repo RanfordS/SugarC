@@ -22,6 +22,8 @@ e.g. `int *const a` -> `Const &Int: a`
 
 > C
 
+#include "other.h"
+
 #define IMPORTANT_CONST 3.14
 
 const int *a;                   // pointer to constant int
@@ -32,7 +34,7 @@ int* e = &d;                    // e = pointer to address of d
 
 Vec3* v;
 float x = v->x;                 // `->` adds offset of and dereferences
-float* px = &v->x;
+float* px = &v->x;              // C++ has `.*` and `->*`
 
 struct SomeStruct* structure;
 int val = *structure->ptr;
@@ -63,6 +65,8 @@ float b = 1.0f + *(float*)(void*)(&a);
 
 
 > SugarC
+
+include "other.hgr"
 
 Sugar: IMPORTANT_CONST = 3.14;
 
@@ -105,6 +109,22 @@ Function Sugar: ISLETTER (c)
 
 Int: a;
 Float: b = 1.0f + (!Float: a);
+
+
+
+~@> Infix Example
+
+Infix Float: (Vec3: a) dot (b)
+{
+    Float: acc = 0;
+    for (Size: i -> 3)
+        acc += a[i]*b[i];
+
+    return acc;
+}
+
+Vec3: u, v;
+Float: udv = u dot v;
 
 
 
@@ -278,11 +298,12 @@ Other:
     Cast            ($:$)
     Reinterpret     (!$:$)
     End statement   $;
+    Loop range      $->$
 
 By Priority:
-->   $++ $-- $($) $[$] $.$
-<-   ++$ --$ +$ -$ !$ ~$ @$ &$
-->   $*$ $/$ $%$
+->   $++ $-- $($) $[$] $.$ $suffixnoun
+<-   ++$ --$ +$ -$ !$ ~$ @$ &$ prefixnoun$
+->   $*$ $/$ $%$ $infixnoun$
 ->   $+$ $-$
 ->   $<<$ $>>$
 ->   $<$ $<=$ $>$ $>=$
@@ -293,11 +314,32 @@ By Priority:
 ->   $&&$
 ->   $^^$
 ->   $||$
-<-   $?$:$
+->   $->$
 <-   $=$ $+=$ $-=$ $*=$ $/=$ $%=$ $<<=$ $>>=$ $&=$ $^=$ $|=$
+<-   $?$:$
 ->   $,$
 
 
+
+~@> File Extensions
+
+.sgr	.hgr
+.sgr	.sgh
+.sgr	.hdr
+.sgrc   .sgrh
+
+~@> Loops
+
+for (Size: i = 0; i < n; ++i) {}
+for (Size: i = 0 -> n) {}
+for (Size: i -> n) {}
+for (i -> n) {}
+
+for (Size: i = 1; i < n; ++i) {}
+for (Size: i = 1 -> n) {}
+
+for (Size: i = 0; i < n; i += 2) {}
+for (Size: i = 0 -> +2 -> n) {}
 
 ~@> Parsing
 

@@ -1,6 +1,6 @@
 #include "alternate.hpp"
 
-const std::vector<std::string> inbuiltTypes =
+const std::vector <std::string> inbuiltTypes
 {   "Bool"
 ,   "Char"
 ,   "Byte"
@@ -12,17 +12,21 @@ const std::vector<std::string> inbuiltTypes =
 ,   "Double"
 ,   "Void"
 ,   "Function"
+,   "Prefix"
+,   "Infix"
+,   "Suffix"
 ,   "Enum"
 ,   "BitField"
 ,   "Struct"
+,   "Union"
 };
 
-const std::vector<std::string> inbuiltVariableTypes =
+const std::vector <std::string> inbuiltVariableTypes
 {   "Int"
 ,   "UInt"
 };
 
-const std::vector<std::string> operators
+const std::vector <std::string> operators
 {   "++", "--"
 ,   "+=", "-=", "*=", "/=", "%="
 ,   "&=", "|=", "^="
@@ -33,6 +37,49 @@ const std::vector<std::string> operators
 ,   "&&=", "||=", "^^="
 ,   "<<=", ">>="
 };
+
+const std::vector <std::string> modifiers
+{   "Volatile"
+,   "Restricted"
+,   "Align8"
+,   "Align16"
+,   "Align32"
+,   "Align64"
+,   "Const"
+,   "Atomic"
+,   "Extern"
+,   "Inline"
+,   "Sugar"
+//,   "Mutable"
+};
+
+const std::vector <std::string> inbuildSugarConstants
+{   "true"
+,   "false"
+,   "null"
+};
+
+const std::vector <std::string> inbuildSugarFunctions
+{   "sizeof"
+,   "offsetof"
+};
+
+const std::vector <std::string> keywords
+{   "switch"
+,   "case"
+,   "default"
+,   "break"
+,   "do"
+,   "while"
+,   "for"
+,   "continue"
+,   "if"
+,   "else"
+,   "return"
+,   "goto"
+,   "label"
+};
+
 
 bool isstandardtype (std::string raw)
 {
@@ -394,21 +441,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
 
 
 
-std::vector<std::string> keywords =
-{   "switch"
-,   "case"
-,   "default"
-,   "break"
-,   "do"
-,   "while"
-,   "for"
-,   "continue"
-,   "if"
-,   "else"
-,   "return"
-};
-
-void identifykeywords (std::vector<Token> &list)
+void identifykeywords (std::vector <Token> &list)
 {
     for (auto &token : list)
         if (token.tokenClass == TK_NOUN)
@@ -422,7 +455,7 @@ void identifykeywords (std::vector<Token> &list)
         }
 }
 
-bool alternateparse (FILE* file, std::vector<Token> &list)
+bool alternateparse (FILE* file, std::vector <Token> &list)
 {
     bool success = true;
     uint8_t tab = 4;
@@ -504,9 +537,9 @@ rerun:
 
 
 bool bracketsvalidator
-(std::vector<Token> &list, std::vector<BracketOffence> &offenders)
+(std::vector <Token> &list, std::vector <BracketOffence> &offenders)
 {
-    std::vector<Token> stack = {};
+    std::vector <Token> stack = {};
 
     for (auto token : list)
     {
@@ -557,7 +590,7 @@ bool bracketsvalidator
 
 
 
-Token bracket (std::vector<Token> &list)
+Token bracket (std::vector <Token> &list)
 {
     Token root = {};
     root.tokenClass = TK_CONTEXT_FILE;
@@ -591,6 +624,9 @@ Token bracket (std::vector<Token> &list)
 
 
 /* header seeking
+ *
+ * includes/imports:
+ * Include
  *
  * type definitions:
  * Struct: Noun {}
@@ -648,4 +684,170 @@ Token bracket (std::vector<Token> &list)
  * switch () {}
  * if () [Statement|{}] (else [Statement|{}])
  */
+
+enum OperatorType
+{   OT_LTR_SUFFIX
+,   OT_LTR_PREFIX
+,   OT_LTR_INFIX
+,   OT_LTR_TERNARY
+,   OT_RTL_SUFFIX
+,   OT_RTL_PREFIX
+,   OT_RTL_INFIX
+,   OT_RTL_TERNARY
+};
+
+struct OperatorRound
+{   OperatorType type;
+    std::vector <std::string> operators;
+};
+
+const std::vector <OperatorRound> inbuildRounds
+{   {   OT_LTR_SUFFIX,
+    {   "++"    // postincrement
+    ,   "--"    // postdecrement
+    ,   "."     // member access
+    //  array index and function call should act like these
+    //  custom suffix functions should act like these
+    }}
+,   {   OT_RTL_PREFIX,
+    {   "!"     // logical not
+    ,   "~"     // bitwise not
+    ,   "&"     // address of (reference)
+    ,   "@"     // at address (dereference)
+    ,   "++"    // preincrement
+    ,   "--"    // predecrement
+    //  custom prefix functions should act like these
+    }}
+,   {   OT_LTR_PREFIX,
+    {   "+"     // unary plus
+    ,   "-"     // unary minus
+    }}
+,   {   OT_LTR_INFIX,
+    {   "*"  	// multiply
+    ,   "/"  	// divide
+    ,   "%"  	// modulus
+    //  custom infix functions should act like these
+    }}
+,   {   OT_LTR_INFIX,
+    {   "+"  	// add
+    ,   "-"  	// subtract
+    }}
+,   {   OT_LTR_INFIX,
+    {   "<<" 	// shift up
+    ,   ">>" 	// shift down
+    }}
+,   {   OT_LTR_INFIX,
+    {   "<"  	// less than
+    ,   "<=" 	// less than or equal to
+    ,   ">"  	// greater than
+    ,   ">=" 	// greater than or equal to
+    }}
+,   {   OT_LTR_INFIX,
+    {   "=="    // equality
+    ,   "!="    // inquality
+    }}
+,   {   OT_LTR_INFIX,
+    {   "&"     // bitwise and
+    }}
+,   {   OT_LTR_INFIX,
+    {   "^"     // bitwise xor
+    }}
+,   {   OT_LTR_INFIX,
+    {   "|"     // bitwise or
+    }}
+,   {   OT_LTR_INFIX,
+    {   "&&"    // logical and
+    }}
+,   {   OT_LTR_INFIX,
+    {   "^^"    // logical xor
+    }}
+,   {   OT_LTR_INFIX,
+    {   "||"    // logical or
+    }}
+,   {   OT_LTR_INFIX,
+    {   "->"    // for range
+    }}
+,   {   OT_RTL_INFIX,
+    {   "="     // assign
+    ,   "+="    // add assign
+    ,   "-="    // subtract assign
+    ,   "*="    // multiply assign
+    ,   "/="    // divide assign
+    ,   "%="    // modulus assign
+    ,   "<<="   // shift up assign
+    ,   ">>="   // shift down assign
+    ,   "&="    // bitwise and assign
+    ,   "^="    // bitwise xor assign
+    ,   "|="    // bitwise or assign
+    ,   "&&="   // logical and assign
+    ,   "^^="   // logical xor assign
+    ,   "||="   // logical or assign
+    }}
+,   {   OT_LTR_INFIX,
+    {   ","     // separator
+    }}
+};
+
+
+
+void contextparse (Token &root)
+{
+    // do the rounds
+    size_t round = 0;
+    while (round < inbuildRounds.size ())
+    {
+        // search for an operator token
+        size_t i = 0;
+        while (i < root.subtokens.size ())
+        {   if (root.subtokens[i].tokenClass == TK_OPERATOR)
+            {
+                // that matches one in the round
+                bool match = false;
+                for (std::string sequence : inbuildRounds[i].operators)
+                {
+                    // and construct a valid contextual
+                }
+            }
+        }
+
+        ++round;
+    }
+}
+
+
+
+
+struct DefinitionVariable
+{
+    std::string name;
+    Token declaration;
+};
+
+struct DefintionFunction
+{
+    std::string name;
+    std::vector<Token> arg_types;
+    Token return_type;
+};
+
+struct DefinitionPrefix
+{
+    std::string name;
+    Token arg_type;
+};
+
+struct DefinitionInfix
+{
+    Token left_arg_type;
+    std::string name;
+    Token right_arg_type;
+};
+
+struct DefinitionSuffix
+{
+    Token arg_type;
+    std::string name;
+};
+
+
 
