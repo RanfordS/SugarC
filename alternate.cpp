@@ -696,23 +696,34 @@ enum OperatorType
 ,   OT_RTL_TERNARY
 };
 
+#define OT_ISLTR(t) RANGE(OT_LTR_SUFFIX,t,OT_LTR_TERNARY)
+#define OT_ISRTL(t) RANGE(OT_RTL_SUFFIX,t,OT_RTL_TERNARY)
+#define OT_HASLEFT(t) \
+    ((t) == OT_LTR_SUFFIX || (t) == OT_LTR_INFIX || \
+     (t) == OT_RTL_SUFFIX || (t) == OT_RTL_INFIX)
+#define OT_HASRIGHT(t) \
+    ((t) == OT_LTR_PREFIX || (t) == OT_LTR_INFIX || \
+     (t) == OT_RTL_PREFIX || (t) == OT_RTL_INFIX)
+
 struct OperatorRound
 {   OperatorType type;
     std::vector <std::string> operators;
 };
 
 const std::vector <OperatorRound> inbuildRounds
-{   {   OT_LTR_SUFFIX,
+{   {   OT_LTR_INFIX,
+    {  "."     // member access
+    }}
+,   {   OT_LTR_SUFFIX,
     {   "++"    // postincrement
     ,   "--"    // postdecrement
-    ,   "."     // member access
     //  array index and function call should act like these
     //  custom suffix functions should act like these
     }}
 ,   {   OT_RTL_PREFIX,
     {   "!"     // logical not
     ,   "~"     // bitwise not
-    ,   "&"     // address of (reference)
+    ,   "&"     // address of (reference) / pointer declaration
     ,   "@"     // at address (dereference)
     ,   "++"    // preincrement
     ,   "--"    // predecrement
@@ -722,6 +733,11 @@ const std::vector <OperatorRound> inbuildRounds
     {   "+"     // unary plus
     ,   "-"     // unary minus
     }}
+/*  a custom pow-like operator would have to go here
+,   {   OT_RTL_INFIX,
+    {   "pow"   // power
+    }}
+ */
 ,   {   OT_LTR_INFIX,
     {   "*"  	// multiply
     ,   "/"  	// divide
@@ -783,35 +799,163 @@ const std::vector <OperatorRound> inbuildRounds
     ,   "^^="   // logical xor assign
     ,   "||="   // logical or assign
     }}
+/*  ternary operator goes here, but doesn't match the typical pattern
+,   {   OT_RTL_TERNARY
+    {   "?:"    // ternary selector
+    }}
+ */
+/*  comma is handled as an operator in C, but may be handled elsewhere
 ,   {   OT_LTR_INFIX,
     {   ","     // separator
     }}
+ */
 };
 
 
+// prefix:
+// i-2 i-1 i+0 i+1 i+2
+//  ?   ?  pfx exp  ?
+//  ?   ?  cmp  ?
+//     <--     -->
+// infix:
+// i-2 i-1 i+0 i+1 i+2
+//  ?  exp ifx exp  ?
+//  ?  cmp  ?
+// <--     -->
+// suffix:
+// i-2 i-1 i+0 i+1 i+2
+//  ?  exp sfx  ?   ?
+//  ?  cmp  ?   ?
+// <--     -->
 
-void contextparse (Token &root)
+bool contextsubparse (Token &root, size_t round, size_t i)
 {
+    if (root.subtokens[i].tokenClass != TK_OPERATOR) return false;
+
+    OperatorType type = inbuildRounds[round].type;
+    bool has_left = OT_HASLEFT(type);
+    bool has_right = OT_HASRIGHT(type);
+
+    for (auto name : inbuildRounds[round].operators)
+    {
+        if (name == root.subtokens[i].raw) goto label_match_found;
+    }
+    return false;
+label_match_found:
+
+    if (has_left)
+        if (!TK_ISEXPRESSION(root.subtokens[i-1].tokenClass))
+            return false;
+    if (has_right)
+        if (!TK_ISEXPRESSION(root.subtokens[i+1].tokenClass))
+            return false;
+
+    // check for possible non-unary variant of the operator
+    if (!has_left && i > 0)
+    {
+        for (auto alt_round : inbuildRounds)
+        {
+            if (alt_round.type == OT_LTR_INFIX
+            ||  alt_round.type == OT_RTL_INFIX)
+            {
+                for (auto name : alt_round.operators)
+                {
+                    if (name == root.subtokens[i].raw)
+                        return false;
+                }
+            }
+        }
+    }
+
+    Token expression = {};
+    expression.line = root.subtokens[i].line;
+    expression.column = root.subtokens[i].column;
+    switch (type)
+    {
+        case OT_LTR_PREFIX:
+        case OT_RTL_PREFIX:
+            expression.tokenClass = TK_CONTEXT_EXPRESSION_PREFIX;
+            expression.subtokens.push_back (root.subtokens[i]);
+            expression.subtokens.push_back (root.subtokens[i+1]);
+            break;
+
+        case OT_LTR_INFIX:
+        case OT_RTL_INFIX:
+            expression.tokenClass = TK_CONTEXT_EXPRESSION_INFIX;
+            expression.subtokens.push_back (root.subtokens[i-1]);
+            expression.subtokens.push_back (root.subtokens[i]);
+            expression.subtokens.push_back (root.subtokens[i+1]);
+            break;
+
+        case OT_LTR_SUFFIX:
+        case OT_RTL_SUFFIX:
+            expression.tokenClass = TK_CONTEXT_EXPRESSION_SUFFIX;
+            expression.subtokens.push_back (root.subtokens[i-1]);
+            expression.subtokens.push_back (root.subtokens[i]);
+            break;
+
+        default:
+            return false;
+            break;
+    }
+
+    root.subtokens.erase
+        (root.subtokens.begin () + i - has_left,
+         root.subtokens.begin () + i + 1 + has_right);
+    root.subtokens.emplace (root.subtokens.begin () + i - has_left, expression);
+
+    return true;
+}
+
+bool contextparse (Token &root)
+{
+    bool success = true;
+
     // do the rounds
     size_t round = 0;
     while (round < inbuildRounds.size ())
     {
-        // search for an operator token
-        size_t i = 0;
-        while (i < root.subtokens.size ())
-        {   if (root.subtokens[i].tokenClass == TK_OPERATOR)
+        OperatorType type = inbuildRounds[round].type;
+        bool has_left = OT_HASLEFT(type);
+        bool has_right = OT_HASRIGHT(type);
+
+        // ensure there are enough tokens
+        if (has_left + (size_t)1 + has_right > root.subtokens.size ())
+        {
+            ++round;
+            continue;
+        }
+
+        if (OT_ISLTR(type))
+        {
+            size_t i = 0 + has_left;
+            while (i + has_right < root.subtokens.size ())
             {
-                // that matches one in the round
-                bool match = false;
-                for (std::string sequence : inbuildRounds[i].operators)
-                {
-                    // and construct a valid contextual
-                }
+                bool match = contextsubparse (root, round, i);
+                if (!match || !has_left) ++i;
+            }
+        }
+        else
+        {
+            size_t i = root.subtokens.size () - 1 - has_right;
+            while (i - has_left < (size_t)(-2))
+            {
+                bool match = contextsubparse (root, round, i);
+                if (match && has_left) --i;
+                --i;
             }
         }
 
         ++round;
     }
+
+    // do the rounds on any child blocks
+    for (auto &child : root.subtokens)
+    {
+        if (TK_ISBRACKET_BLOCK(child.tokenClass)) contextparse (child);
+    }
+
+    return success;
 }
 
 

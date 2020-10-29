@@ -10,6 +10,11 @@ Float: foo (Int: bar)
 	return bar + 1.0f;
 }
 
+Float: quadratic (a, b, c, x)
+{
+    return a*x*x + b*x + c;
+}
+
 /*	Standard main file definition,
 	nothing much here */
 Int: main (argc, &&Char: argv)

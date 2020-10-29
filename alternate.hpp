@@ -61,143 +61,51 @@ enum TokenClass
 ,   TK_NOUN_VARIABLE
 ,   TK_NOUN_OPERATOR
 //  contextual
-/*
 ,   TK_CONTEXT_FILE
-,   TK_CONTEXT_OPERATOR_PREFIX
-,   TK_CONTEXT_OPERATOR_INFIX
-,   TK_CONTEXT_OPERATOR_SUFFIX
-,   TK_CONTEXT_OPERATOR_TERNARY
-,   TK_CONTEXT_INDEX
-,   TK_CONTEXT_CALL
-,   TK_CONTEXT_TYPE
-,   TK_CONTEXT_CAST
-,   TK_CONTEXT_CAST_REINTERP
-,   TK_CONTEXT_STATEMENT
-,   TK_CONTEXT_SCOPE
-,   TK_CONTEXT_DEFINITION_TYPE
-,   TK_CONTEXT_DECLARATION_VARIABLE
-,   TK_CONTEXT_DECLARATION_VARIABLE_MULTIPLE
-,   TK_CONTEXT_DEFINITION_FUNCTION
-,   TK_CONTEXT_DECLARATION_FUNCTION
-*/
-,   TK_CONTEXT_FILE
-//  - (declaration | definition)*
+    //- (declaration | definition | include)*
 ,   TK_CONTEXT_EXPRESSION_PREFIX
-//  - operator, expression
+    //- operator, expression
 ,   TK_CONTEXT_EXPRESSION_INFIX
-//  - expression, operator, expression
+    //- expression, operator, expression
 ,   TK_CONTEXT_EXPRESSION_SUFFIX
-//  - expression, operator
+    //- expression, operator
 ,   TK_CONTEXT_EXPRESSION_TERNARY
-//  - expression, operator, expression, operator, expression
+    //- expression, operator, expression, operator, expression
 ,   TK_CONTEXT_EXPRESSION_INDEX
-//  - expression, square block
+    //- expression, square block
 ,   TK_CONTEXT_EXPRESSION_CALL
-//  - expression, round block
+    //- expression, round block
 ,   TK_CONTEXT_EXPRESSION_CAST
-//  - round open, type, colon, expression, round close
+    //- round open, type, colon, expression, round close
 ,   TK_CONTEXT_EXPRESSION_CAST_REINTERP
-//  - round open, exclaimation, type, colon, expression, round close
+    //- round open, exclaimation, type, colon, expression, round close
 ,   TK_CONTEXT_DECLARATION_VARIABLE
-//  - type, colon, (noun | expression)+
+    //- type, colon, (noun | expression)+
 ,   TK_CONTEXT_DECLARATION_FUNCTION
-//  - Function, type, colon, noun, round block, semicolon
+    //- Function, type, colon, noun, round block, semicolon
 ,   TK_CONTEXT_DECLARATION_PREFIX
-//  - Prefix, type, colon, noun, round block, semicolon
+    //- Prefix, type, colon, noun, round block, semicolon
 ,   TK_CONTEXT_DECLARATION_INFIX
-//  - Infix, type, colon, round block, noun, round block, semicolon
+    //- Infix, type, colon, round block, noun, round block, semicolon
 ,   TK_CONTEXT_DECLARATION_SUFFIX
-//  - Suffix, type, colon, round block, noun, semicolon
+    //- Suffix, type, colon, round block, noun, semicolon
 ,   TK_CONTEXT_DEFINITION_TYPE
-//  - type, colon, name, curly block
+    //- type, colon, name, curly block
 ,   TK_CONTEXT_DEFINITION_FUNCTION
-//  - Function, type, colon, noun, round block, curly block
+    //- Function, type, colon, noun, round block, curly block
 ,   TK_CONTEXT_DEFINITION_PREFIX
-//  - Prefix, type, colon, noun, round block, curly block
+    //- Prefix, type, colon, noun, round block, curly block
 ,   TK_CONTEXT_DEFINITION_INFIX
-//  - Infix, type, colon, round block, noun, round block, curly block
+    //- Infix, type, colon, round block, noun, round block, curly block
 ,   TK_CONTEXT_DEFINITION_SUFFIX
-//  - Suffix, type, colon, round block, noun, curly block
+    //- Suffix, type, colon, round block, noun, curly block
 ,   TK_CONTEXT_DECLARATION_MEMBER
-//  - noun | expression
+    //- noun | expression
 ,   TK_CONTEXT_STATEMENT
-//  - expression, semi-colon
+    //- expression, semi-colon
 ,   TK_CONTEXT_BRANCHING
-//  - keyword, round block, curly block | statement
+    //- keyword, round block, curly block | statement
 };
-
-/* TK_CONTEXT_* Family
- *
- * All context tokens should have empty strings and atleast one subtoken.
- *
- * OPERATOR_PREFIX:
- * - 2 subtokens
- *   [0] = operator token
- *   [1] = right-hand argument
- *
- * OPERATOR_INFIX:
- * - 3 subtokens
- *   [0] = left-hand argument
- *   [1] = operator token
- *   [2] = right-hand argument
- *
- * OPERATOR_SUFFIX:
- * - 2 subtokens
- *   [0] = left-hand argument
- *   [1] = operator token
- *
- * OPERATOR_TERNARY:
- * - 5 subtokens
- *   [0] = first argument
- *   [1] = left-hand operator token
- *   [2] = second argument
- *   [3] = right-hand operator token
- *   [4] = third argument
- *
- * INDEX:
- * - 2 subtokens
- *   [0] = left-hand argument
- *   [1] = square bracket block
- *
- * CALL:
- * - 2 subtokens
- *   [0] = left-hand argument
- *   [1] = round bracket block
- *
- * TYPE:
- * - variable subtokens
- * - last subtoken is the actual type
- * - all other subtokens are modifiers
- *
- * CAST:
- * - 5 subtokens
- *   [0] = left-hand round bracket
- *   [1] = left-hand contextual type argument
- *   [2] = colon
- *   [3] = right-hand argument
- *   [4] = right-hand round bracket
- *
- * CAST:
- * - 6 subtokens
- *   [0] = left-hand round bracket
- *   [1] = exclamation mark
- *   [2] = left-hand contextual type argument
- *   [3] = colon
- *   [4] = right-hand argument
- *   [5] = right-hand round bracket
- *
- * STATEMENT:
- * - 2 subtokens
- *   [0] = expression
- *   [1] = semi-colon
- *
- * DECLARATION_VARIABLE:
- * 2 subtokens
- *   [0] = left-hand contextual type argument
- *   [1] = variable name or plain assignment (infix)
- *
- *
- */
 
 #define TK_ISDELIMITED(t) RANGE(TK_COMMENT_LINE,t,TK_LITERAL_STRING)
 #define TK_ISBRACKET(t) RANGE(TK_BRACKET_OPEN_ROUND,t,TK_BRACKET_BLOCK_CURLY)
@@ -214,7 +122,9 @@ enum TokenClass
 #define TK_ISNUMBER(t) RANGE(TK_NUMBER,t,TK_NUMBER_EXPONENTIAL_FLOAT)
 #define TK_ISNOUN(t) RANGE(TK_NOUN,t,TK_NOUN_VARIABLE)
 
-
+#define TK_ISEXPRESSION(t) \
+    (RANGE(TK_CONTEXT_EXPRESSION_PREFIX,t,TK_CONTEXT_EXPRESSION_CAST_REINTERP) \
+     || TK_ISNUMBER(t) || TK_ISNOUN(t) || TK_ISBRACKET(t))
 
 extern const std::vector <std::string> operators;
 
@@ -248,6 +158,9 @@ extern bool bracketsvalidator
 (std::vector <Token> &list, std::vector <BracketOffence> &offenders);
 
 extern Token bracket (std::vector <Token> &list);
+
+extern bool contextparse (Token &root);
+
 
 
 extern void highlighter (std::vector <Token> &root);

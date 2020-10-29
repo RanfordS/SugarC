@@ -1,6 +1,72 @@
 #include "alternate.hpp"
 #include <sstream>
 
+std::string tokenNames[] =
+{   "TK_NONE"
+,   "TK_OPERATOR"
+,   "TK_COMMENT_LINE"
+,   "TK_COMMENT_BLOCK"
+,   "TK_LITERAL_CHAR"
+,   "TK_LITERAL_STRING"
+,   "TK_BRACKET_OPEN_ROUND"
+,   "TK_BRACKET_OPEN_SQUARE"
+,   "TK_BRACKET_OPEN_CURLY"
+,   "TK_BRACKET_CLOSE_ROUND"
+,   "TK_BRACKET_CLOSE_SQUARE"
+,   "TK_BRACKET_CLOSE_CURLY"
+,   "TK_BRACKET_BLOCK_ROUND"
+,   "TK_BRACKET_BLOCK_SQUARE"
+,   "TK_BRACKET_BLOCK_CURLY"
+,   "TK_NUMBER"
+,   "TK_NUMBER_ZERO"
+,   "TK_NUMBER_INT_SIGNED"
+,   "TK_NUMBER_INT_UNSIGNED"
+,   "TK_NUMBER_INT_SPECIFIED_SIGNED"
+,   "TK_NUMBER_INT_SPECIFIED_UNSIGNED"
+,   "TK_NUMBER_BINARY"
+,   "TK_NUMBER_OCTAL"
+,   "TK_NUMBER_HEXIDECIMAL"
+,   "TK_NUMBER_DOUBLE"
+,   "TK_NUMBER_FLOAT"
+,   "TK_NUMBER_EXPONENTIAL_DOUBLE"
+,   "TK_NUMBER_EXPONENTIAL_FLOAT"
+,   "TK_NOUN"
+,   "TK_NOUN_KEYWORD"
+,   "TK_NOUN_TYPE"
+,   "TK_NOUN_VARIABLE"
+,   "TK_NOUN_OPERATOR"
+,   "TK_CONTEXT_FILE"
+,   "TK_CONTEXT_EXPRESSION_PREFIX"
+,   "TK_CONTEXT_EXPRESSION_INFIX"
+,   "TK_CONTEXT_EXPRESSION_SUFFIX"
+,   "TK_CONTEXT_EXPRESSION_TERNARY"
+,   "TK_CONTEXT_EXPRESSION_INDEX"
+};
+
+void disp (Token &root, int indent)
+{
+    std::printf ("%*sclass: %s\n", 4*indent, "", tokenNames[root.tokenClass].data ());
+    if (root.tokenClass == TK_COMMENT_LINE
+    ||  root.tokenClass == TK_COMMENT_BLOCK)
+    {
+        return;
+    }
+
+    if (!root.raw.empty ())
+    {
+        std::printf ("%*sraw: `%s`\n", 4*indent, "", root.raw.data ());
+    }
+
+    for (auto &child : root.subtokens)
+    {
+        disp (child, indent + 1);
+    }
+    if (root.subtokens.size () > 0)
+    {
+        std::printf ("%*s<<\n", 4*indent, "");
+    }
+}
+
 int main (int argc, char** argv)
 {
     /*
@@ -65,11 +131,9 @@ int main (int argc, char** argv)
 
         Token newroot = bracket (root);
 
-        for (auto token : newroot.subtokens)
-        {
-            bool isblock = TK_ISBRACKET_BLOCK(token.tokenClass);
-            std::printf ("%s (%i)\n", isblock ? "`BLOCK`": token.raw.data (), token.tokenClass);
-        }
+        bool context = contextparse (newroot);
+
+        disp (newroot, 0);
 
         highlighter (newroot.subtokens);
     }
