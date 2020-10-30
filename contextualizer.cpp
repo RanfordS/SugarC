@@ -160,6 +160,11 @@ const std::vector <OperatorRound> inbuildRounds
 ,   {   OT_LTR_INFIX,
     {   "->"    // for range
     }}
+/*  ternary operator goes here, but doesn't match the typical pattern
+,   {   OT_RTL_TERNARY
+    {   "?:"    // ternary selector
+    }}
+ */
 ,   {   OT_RTL_INFIX,
     {   "="     // assign
     ,   "+="    // add assign
@@ -176,11 +181,6 @@ const std::vector <OperatorRound> inbuildRounds
     ,   "^^="   // logical xor assign
     ,   "||="   // logical or assign
     }}
-/*  ternary operator goes here, but doesn't match the typical pattern
-,   {   OT_RTL_TERNARY
-    {   "?:"    // ternary selector
-    }}
- */
 /*  comma is handled as an operator in C, but may be handled elsewhere
 ,   {   OT_LTR_INFIX,
     {   ","     // separator

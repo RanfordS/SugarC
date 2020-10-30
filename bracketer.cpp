@@ -38,6 +38,24 @@ bool bracketsvalidator
                 stack.pop_back ();
             }
         }
+        else
+        if (token.tokenClass == TK_OPERATOR)
+        {
+            if (token.raw == "?")
+            {
+                std::printf ("check tern++\n");
+                stack.push_back (token);
+            }
+            else
+            if (token.raw == ":" && !stack.empty ())
+            {
+                if (stack.back().tokenClass == TK_OPERATOR)
+                {
+                    std::printf ("check tern--\n");
+                    stack.pop_back ();
+                }
+            }
+        }
     }
 
     // any remaining stack entries must be offenders
@@ -74,12 +92,33 @@ Token bracket (std::vector <Token> &list)
             // add a pointer to the new token into the stack
             stack.push_back (&stack.back ()->subtokens.back ());
         }
+        else
+        if (token.tokenClass == TK_OPERATOR
+        &&  token.raw == "?")
+        {
+            Token child = {};
+            child.tokenClass = TK_BRACKET_TERNARY;
+            child.line = token.line;
+            child.column = token.column;
+
+            stack.back ()->subtokens.push_back (child);
+            // add a pointer to the new token into the stack
+            stack.push_back (&stack.back ()->subtokens.back ());
+        }
 
         stack.back ()->subtokens.push_back (token);
 
         if (TK_ISBRACKET_CLOSE(token.tokenClass))
         {
             stack.pop_back ();
+        }
+        else
+        if (token.tokenClass == TK_OPERATOR && token.raw == ":" && !stack.empty ())
+        {
+            if (stack.back()->tokenClass == TK_BRACKET_TERNARY)
+            {
+                stack.pop_back ();
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 // comment
 
-Int: a = 1;
+Int: a = 1 ? 2+2 : 3;
 
 Float: foo (Int: bar)
 {
@@ -24,7 +24,7 @@ Int: main (argc, &&Char: argv)
         io.printf ("Ping %i\n", i);
     }
 
-	printf ("Hello \"world\"\n");
+	io.printf ("Hello \"world\"\n");
 	return 0;
 }
 

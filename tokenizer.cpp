@@ -299,6 +299,14 @@ AdvanceReturns tokenAdvance (Token &token, char c)
             {   token.tokenClass = TK_NUMBER_EXPONENTIAL_DOUBLE;
                 return AR_CONTINUE;
             }
+            if (c == 'i' || c == 'I')
+            {   token.tokenClass = TK_NUMBER_INT_SIGNED;
+                return AR_CONTINUE;
+            }
+            if (c == 'u' || c == 'U')
+            {   token.tokenClass = TK_NUMBER_INT_UNSIGNED;
+                return AR_CONTINUE;
+            }
             if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
@@ -400,7 +408,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
             if (RANGE('0',c,'9')) return AR_CONTINUE;
 
             if (c == '-' || c == '+')
-            {   char p = token.raw[token.raw.size () - 1];
+            {   char p = token.raw.back ();
                 if (p == 'e' || p == 'E') return AR_CONTINUE;
                 return AR_FINISHED_CHAR2NEXT;
             }

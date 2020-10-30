@@ -17,6 +17,7 @@ std::string tokenNames[] =
 ,   "TK_BRACKET_BLOCK_ROUND"
 ,   "TK_BRACKET_BLOCK_SQUARE"
 ,   "TK_BRACKET_BLOCK_CURLY"
+,   "TK_BRACKET_TERNARY"
 ,   "TK_NUMBER"
 ,   "TK_NUMBER_ZERO"
 ,   "TK_NUMBER_INT_SIGNED"
@@ -135,7 +136,7 @@ int main (int argc, char** argv)
 
         disp (newroot, 0);
 
-        highlighter (newroot.subtokens);
+        //highlighter (newroot.subtokens);
     }
 
     return 0;
