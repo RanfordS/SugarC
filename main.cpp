@@ -136,7 +136,7 @@ int main (int argc, char** argv)
 
         disp (newroot, 0);
 
-        //highlighter (newroot.subtokens);
+        highlighter (newroot.subtokens);
     }
 
     return 0;
