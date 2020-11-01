@@ -1,6 +1,6 @@
-#include "alternate.hpp"
+#include "data.hpp"
 #include <sstream>
-
+/*
 std::string tokenNames[] =
 {   "TK_NONE"
 ,   "TK_OPERATOR"
@@ -69,6 +69,7 @@ void disp (Token &root, int indent)
         std::printf ("%*s<<\n", 4*indent, "");
     }
 }
+*/
 
 int main (int argc, char** argv)
 {

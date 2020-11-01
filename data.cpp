@@ -21,6 +21,11 @@ const std::vector <std::string> inbuiltTypes
 ,   "Union"
 };
 
+const std::vector <std::string> inbuiltVariableTypes
+{   "Int"
+,   "UInt"
+};
+
 const std::vector <std::string> modifiers
 {   "Volatile"
 ,   "Restricted"
@@ -36,9 +41,20 @@ const std::vector <std::string> modifiers
 ,   "Array"
 };
 
-const std::vector <std::string> inbuiltVariableTypes
-{   "Int"
-,   "UInt"
+const std::vector <std::string> keywords
+{   "switch"
+,   "case"
+,   "default"
+,   "break"
+,   "do"
+,   "while"
+,   "for"
+,   "continue"
+,   "if"
+,   "else"
+,   "return"
+,   "goto"
+,   "label"
 };
 
 const std::vector <std::string> operators

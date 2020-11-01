@@ -1,5 +1,6 @@
-#include "alternate.hpp"
-
+//#include "alternate.hpp"
+#include "data.hpp"
+/*
 const std::vector <std::string> inbuiltTypes
 {   "Bool"
 ,   "Char"
@@ -79,7 +80,7 @@ const std::vector <std::string> keywords
 ,   "goto"
 ,   "label"
 };
-
+*/
 
 bool isstandardtype (std::string raw)
 {
@@ -132,16 +133,17 @@ enum AdvanceReturns
 
 AdvanceReturns tokenAdvance (Token &token, char c)
 {
-    if (!TK_ISDELIMITED(token.tokenClass)
-    &&  CHAR_ISWHITESPACE(c)) return AR_FINISHED_CHAR2NONE;
+    if (token.tokenClass & TK_CLASS_MASK != TK_CLASS_COMMENT
+    &&  token.tokenClass & TK_CLASS_MASK != TK_CLASS_LITERAL
+    &&  charIsWhitespace (c)) return AR_FINISHED_CHAR2NONE;
 
     switch (token.tokenClass)
     {
         case TK_NONE:
         {
-            if (!CHAR_ISVALID(c)) return AR_INVALID_CHAR;
+            if (!charIsValid (c)) return AR_INVALID_CHAR;
 
-            if (CHAR_ISLETTER(c))
+            if (charIsLetter (c))
                 token.tokenClass = TK_NOUN;
             else
             if (c == '0')
@@ -271,7 +273,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
                 return AR_CONTINUE;
             }
             if (c == 'x' || c == 'X')
-            {   token.tokenClass = TK_NUMBER_HEXIDECIMAL;
+            {   token.tokenClass = TK_NUMBER_HEXADECIMAL;
                 return AR_CONTINUE;
             }
             if (RANGE('0',c,'7'))
@@ -282,7 +284,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
             {   token.tokenClass = TK_NUMBER_DOUBLE;
                 return AR_CONTINUE;
             }
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -307,7 +309,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
             {   token.tokenClass = TK_NUMBER_INT_UNSIGNED;
                 return AR_CONTINUE;
             }
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -319,7 +321,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
                 return AR_CONTINUE;
             }
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -331,7 +333,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
                 return AR_CONTINUE;
             }
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -340,7 +342,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
         {
             if (RANGE('0',c,'9')) return AR_CONTINUE;
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -349,7 +351,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
         {
             if (RANGE('0',c,'9')) return AR_CONTINUE;
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -358,7 +360,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
         {
             if (c == '0' || c == '1') return AR_CONTINUE;
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -367,18 +369,18 @@ AdvanceReturns tokenAdvance (Token &token, char c)
         {
             if (RANGE('0',c,'7')) return AR_CONTINUE;
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
 
-        case TK_NUMBER_HEXIDECIMAL:
+        case TK_NUMBER_HEXADECIMAL:
         {
             if (RANGE('0',c,'9')
             ||  RANGE('a',c,'f')
             ||  RANGE('A',c,'F')) return AR_CONTINUE;
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -396,7 +398,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
                 return AR_CONTINUE;
             }
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -417,7 +419,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
                 return AR_FINISHED_CHAR2THIS;
             }
 
-            if (CHAR_ISOPERATOR(c)) return AR_FINISHED_CHAR2NEXT;
+            if (charIsOperator (c)) return AR_FINISHED_CHAR2NEXT;
             return AR_INVALID_TOKEN;
             break;
         }
@@ -428,7 +430,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
 
         case TK_NOUN:
         {
-            if (CHAR_ISLETTER(c) || RANGE('0',c,'9')) return AR_CONTINUE;
+            if (charIsLetter (c) || RANGE('0',c,'9')) return AR_CONTINUE;
             return AR_FINISHED_CHAR2NEXT;
             break;
         }

@@ -2,8 +2,8 @@ CCFLAGS = -Wall -Wextra -Og -ggdb -std=c++11
 LDFLAGS = -Wall -Wextra -Og -ggdb -std=c++11
 LINKLIB =
 
-OBJS = main highlighter tokenizer bracketer contextualizer
-HDRS = alternate
+OBJS = main data highlighter tokenizer bracketer contextualizer
+HDRS = data
 TARG = sugarc
 CCMP = g++
 

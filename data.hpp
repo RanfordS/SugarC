@@ -15,6 +15,7 @@ enum TokenClass
 ,   TK_CLASS_NOUN                      = 0b00000110
 ,   TK_CLASS_CONTEXT                   = 0b00000111
 
+,   TKP_SIDE_MASK                      = 0b11000000
 ,   TKP_HAS_LEFT                       = 0b10000000
 ,   TKP_HAS_RIGHT                      = 0b01000000
 ,   TKP_PARSE_RIGHT_TO_LEFT            = 0b00100000
@@ -106,19 +107,23 @@ enum TokenClass
 
 //  numbers
 
-,   TKP_NUMBER_CLASS_MASK              = 0b00011000
-,   TKP_NUMBER_CLASS_INT               = 0b00000000
+,   TKP_NUMBER_CLASS_MASK              = 0b00111000
+,   TKP_NUMBER_CLASS_UNCERTAIN         = 0b00000000
+,   TKP_NUMBER_CLASS_INT               = 0b00100000
 ,   TKP_NUMBER_CLASS_ZERO              = 0b00001000
-,   TKP_NUMBER_CLASS_NONB10            = 0b00010000
-,   TKP_NUMBER_CLASS_FLOAT             = 0b00011000
-,   TKP_NUMBER_NONB10_MASK             = 0b01100000
+,   TKP_NUMBER_CLASS_FLOAT             = 0b00010000
+,   TKP_NUMBER_CLASS_NONB10            = 0b00011000
+,   TKP_NUMBER_NONB10_MASK             = 0b11000000
 ,   TKP_NUMBER_NONB10_BIN              = 0b00000000
-,   TKP_NUMBER_NONB10_OCT              = 0b00100000
-,   TKP_NUMBER_NONB10_HEX              = 0b01000000
-,   TKP_NUMBER_INT_UNSIGNED            = 0b00100000
-,   TKP_NUMBER_INT_SPECIFIED           = 0b01000000
-,   TKP_NUMBER_FLOAT_EXPONENT          = 0b00100000
-,   TKP_NUMBER_FLOAT_FLOAT             = 0b01000000
+,   TKP_NUMBER_NONB10_OCT              = 0b01000000
+,   TKP_NUMBER_NONB10_HEX              = 0b10000000
+,   TKP_NUMBER_INT_UNSIGNED            = 0b01000000
+,   TKP_NUMBER_INT_SPECIFIED           = 0b10000000
+,   TKP_NUMBER_FLOAT_EXPONENT          = 0b01000000
+,   TKP_NUMBER_FLOAT_FLOAT             = 0b10000000
+
+,   TK_NUMBER
+    = TK_CLASS_NUMBER | TKP_NUMBER_CLASS_UNCERTAIN
 
 ,   TK_NUMBER_ZERO
     = TK_CLASS_NUMBER | TKP_NUMBER_CLASS_ZERO
@@ -307,10 +312,20 @@ definitions
     | TKP_HAS_LEFT | TKP_HAS_RIGHT
 };
 
+struct Token
+{
+    uint8_t tokenClass;
+    std::string raw;
+    size_t line;
+    size_t column;
+    std::vector<Token> subtokens;
+};
+
 extern const std::vector <std::string> inbuiltTypes;
 extern const std::vector <std::string> inbuiltVariableTypes;
-extern const std::vector <std::string> operators;
 extern const std::vector <std::string> modifiers;
+extern const std::vector <std::string> keywords;
+extern const std::vector <std::string> operators;
 
 enum OperatorRoundType
 {   ORT_LTR_TERNARY = 0
