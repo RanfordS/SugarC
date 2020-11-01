@@ -220,6 +220,7 @@ bool contextsubparse (Token &root, size_t round, size_t i)
     return false;
 label_match_found:
 
+    // TODO: does not skip past comments
     if (has_left)
         if (!TK_ISEXPRESSION(root.subtokens[i-1].tokenClass))
             return false;

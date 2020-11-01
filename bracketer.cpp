@@ -5,7 +5,7 @@ bool bracketsvalidator
 {
     std::vector <Token> stack = {};
 
-    for (auto token : list)
+    for (auto &token : list)
     {
         if (TK_ISBRACKET_OPEN(token.tokenClass))
         {
@@ -43,15 +43,15 @@ bool bracketsvalidator
         {
             if (token.raw == "?")
             {
-                std::printf ("check tern++\n");
+                token.tokenClass = TK_BRACKET_OPEN_TERNARY;
                 stack.push_back (token);
             }
             else
             if (token.raw == ":" && !stack.empty ())
             {
-                if (stack.back().tokenClass == TK_OPERATOR)
+                if (stack.back().tokenClass == TK_BRACKET_OPEN_TERNARY)
                 {
-                    std::printf ("check tern--\n");
+                    token.tokenClass = TK_BRACKET_CLOSE_TERNARY;
                     stack.pop_back ();
                 }
             }
@@ -92,6 +92,7 @@ Token bracket (std::vector <Token> &list)
             // add a pointer to the new token into the stack
             stack.push_back (&stack.back ()->subtokens.back ());
         }
+        /*
         else
         if (token.tokenClass == TK_OPERATOR
         &&  token.raw == "?")
@@ -105,6 +106,7 @@ Token bracket (std::vector <Token> &list)
             // add a pointer to the new token into the stack
             stack.push_back (&stack.back ()->subtokens.back ());
         }
+        */
 
         stack.back ()->subtokens.push_back (token);
 
@@ -112,14 +114,18 @@ Token bracket (std::vector <Token> &list)
         {
             stack.pop_back ();
         }
+        /*
         else
-        if (token.tokenClass == TK_OPERATOR && token.raw == ":" && !stack.empty ())
+        if (token.tokenClass == TK_OPERATOR
+        &&  token.raw == ":"
+        &&  !stack.empty ())
         {
             if (stack.back()->tokenClass == TK_BRACKET_TERNARY)
             {
                 stack.pop_back ();
             }
         }
+        */
     }
 
     return root;
