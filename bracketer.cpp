@@ -1,18 +1,21 @@
-#include "alternate.hpp"
+#include "bracketer.hpp"
+#include <cstdio>
 
-bool bracketsvalidator
+bool bracketerValidate
 (std::vector <Token> &list, std::vector <BracketOffence> &offenders)
 {
     std::vector <Token> stack = {};
 
     for (auto &token : list)
     {
-        if (TK_ISBRACKET_OPEN(token.tokenClass))
+        if ((token.tokenClass & TK_CLASS_MASK) == TK_CLASS_BRACKET
+        &&  (token.tokenClass & TKP_HAS_LEFT))
         {
             stack.push_back (token);
         }
         else
-        if (TK_ISBRACKET_CLOSE(token.tokenClass))
+        if ((token.tokenClass & TK_CLASS_BRACKET)
+        &&  (token.tokenClass & TKP_HAS_RIGHT))
         {
             if (stack.empty ())
             {
@@ -22,8 +25,8 @@ bool bracketsvalidator
                 offenders.push_back (offence);
             }
             else
-            if (!TK_ISBRACKET_MATCHING(stack.back().tokenClass,
-                                              token.tokenClass))
+            if ((stack.back().tokenClass ^ TKP_BRACKET_CLASS_MASK)
+            ==  token.tokenClass)
             {
                 BracketOffence offence;
                 offence.number = 2;
@@ -39,7 +42,7 @@ bool bracketsvalidator
             }
         }
         else
-        if (token.tokenClass == TK_OPERATOR)
+        if ((token.tokenClass & TK_CLASS_MASK) == TK_CLASS_OPERATOR)
         {
             if (token.raw == "?")
             {
@@ -72,7 +75,7 @@ bool bracketsvalidator
 
 
 
-Token bracket (std::vector <Token> &list)
+Token bracketer (std::vector <Token> &list)
 {
     Token root = {};
     root.tokenClass = TK_CONTEXT_FILE;
@@ -81,10 +84,11 @@ Token bracket (std::vector <Token> &list)
 
     for (auto token : list)
     {
-        if (TK_ISBRACKET_OPEN(token.tokenClass))
+        if ((token.tokenClass & TK_CLASS_MASK) == TK_CLASS_BRACKET
+        &&  (token.tokenClass & TKP_HAS_LEFT))
         {
             Token child = {};
-            child.tokenClass = TK_BRACKET_OPEN_TO_BLOCK(token.tokenClass);
+            child.tokenClass = token.tokenClass | TKP_HAS_RIGHT;
             child.line = token.line;
             child.column = token.column;
 
@@ -92,40 +96,14 @@ Token bracket (std::vector <Token> &list)
             // add a pointer to the new token into the stack
             stack.push_back (&stack.back ()->subtokens.back ());
         }
-        /*
-        else
-        if (token.tokenClass == TK_OPERATOR
-        &&  token.raw == "?")
-        {
-            Token child = {};
-            child.tokenClass = TK_BRACKET_TERNARY;
-            child.line = token.line;
-            child.column = token.column;
-
-            stack.back ()->subtokens.push_back (child);
-            // add a pointer to the new token into the stack
-            stack.push_back (&stack.back ()->subtokens.back ());
-        }
-        */
 
         stack.back ()->subtokens.push_back (token);
 
-        if (TK_ISBRACKET_CLOSE(token.tokenClass))
+        if ((token.tokenClass & TK_CLASS_MASK) == TK_CLASS_BRACKET
+        &&  (token.tokenClass & TKP_HAS_RIGHT))
         {
             stack.pop_back ();
         }
-        /*
-        else
-        if (token.tokenClass == TK_OPERATOR
-        &&  token.raw == ":"
-        &&  !stack.empty ())
-        {
-            if (stack.back()->tokenClass == TK_BRACKET_TERNARY)
-            {
-                stack.pop_back ();
-            }
-        }
-        */
     }
 
     return root;

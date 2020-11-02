@@ -168,7 +168,7 @@ const std::vector <OperatorRound> inbuildRounds
  */
 };
 
-inline bool charIsWhitespace (char c)
+bool charIsWhitespace (char c)
 {
     switch (c)
     {
@@ -179,7 +179,7 @@ inline bool charIsWhitespace (char c)
     return false;
 }
 
-inline bool charIsLetter (char c)
+bool charIsLetter (char c)
 {
     switch (c)
     {
@@ -190,7 +190,7 @@ inline bool charIsLetter (char c)
     return RANGE('A',c,'Z') || RANGE('a',c,'z');
 }
 
-inline bool charIsOperator (char c)
+bool charIsOperator (char c)
 {
     switch (c)
     {
@@ -204,8 +204,67 @@ inline bool charIsOperator (char c)
     return false;
 }
 
-inline bool charIsValid (char c)
+bool charIsValid (char c)
 {
     return RANGE(' ',c,'~');
 }
 
+// could not get a map or an array to create hold this structure
+std::string getTokenName (uint8_t tokenClass)
+{   switch (tokenClass)
+    {
+case TK_NONE:                               return "None";
+case TK_OPERATOR:                           return "Operator";
+case TK_COMMENT_LINE:                       return "Comment (line)";
+case TK_COMMENT_BLOCK:                      return "Comment (block)";
+case TK_LITERAL_CHAR:                       return "Char";
+case TK_LITERAL_STRING:                     return "String";
+case TK_BRACKET_OPEN_ROUND:                 return "Bracket (open round)";
+case TK_BRACKET_OPEN_SQUARE:                return "Bracket (open square)";
+case TK_BRACKET_OPEN_CURLY:                 return "Bracket (open curly)";
+case TK_BRACKET_OPEN_TERNARY:               return "Bracket (open ternary)";
+case TK_BRACKET_CLOSE_ROUND:                return "Bracket (close round)";
+case TK_BRACKET_CLOSE_SQUARE:               return "Bracket (close square)";
+case TK_BRACKET_CLOSE_CURLY:                return "Bracket (close curly)";
+case TK_BRACKET_CLOSE_TERNARY:              return "Bracket (close ternary)";
+case TK_BRACKET_BLOCK_ROUND:                return "Bracket (block round)";
+case TK_BRACKET_BLOCK_SQUARE:               return "Bracket (block square)";
+case TK_BRACKET_BLOCK_CURLY:                return "Bracket (block curly)";
+case TK_BRACKET_BLOCK_TERNARY:              return "Bracket (block ternary)";
+case TK_NUMBER:                             return "Number (uncertain)";
+case TK_NUMBER_ZERO:                        return "Number (zero)";
+case TK_NUMBER_INT_SIGNED:                  return "Number (int)";
+case TK_NUMBER_INT_UNSIGNED:                return "Number (uint)";
+case TK_NUMBER_INT_SPECIFIED_SIGNED:        return "Number (intN)";
+case TK_NUMBER_INT_SPECIFIED_UNSIGNED:      return "Number (uintN)";
+case TK_NUMBER_BINARY:                      return "Number (bin)";
+case TK_NUMBER_OCTAL:                       return "Number (oct)";
+case TK_NUMBER_HEXADECIMAL:                 return "Number (hex)";
+case TK_NUMBER_DOUBLE:                      return "Number (double)";
+case TK_NUMBER_FLOAT:                       return "Number (float)";
+case TK_NUMBER_EXPONENTIAL_DOUBLE:          return "Number (exp double)";
+case TK_NUMBER_EXPONENTIAL_FLOAT:           return "Number (exp float)";
+case TK_NOUN:                               return "Noun (generic)";
+case TK_NOUN_KEYWORD:                       return "Noun (keyword)";
+case TK_NOUN_VARIABLE:                      return "Noun (variable)";
+case TK_NOUN_TYPE:                          return "Noun (type)";
+case TK_NOUN_FUNCTION:                      return "Noun (function)";
+case TK_CONTEXT_FILE:                       return "Context (file)";
+case TK_CONTEXT_EXPRESSION_CALL:            return "Expression (call)";
+case TK_CONTEXT_EXPRESSION_PREFIX:          return "Expression (prefix)";
+case TK_CONTEXT_EXPRESSION_SUFFIX:          return "Expression (suffix)";
+case TK_CONTEXT_EXPRESSION_INFIX:           return "Expression (infix)";
+case TK_CONTEXT_DECLARATION_CALL:           return "Declaration (call)";
+case TK_CONTEXT_DECLARATION_PREFIX:         return "Declaration (prefix)";
+case TK_CONTEXT_DECLARATION_SUFFIX:         return "Declaration (suffix)";
+case TK_CONTEXT_DECLARATION_INFIX:          return "Declaration (infix)";
+case TK_CONTEXT_DEFINITION_CALL:            return "Definition (call)";
+case TK_CONTEXT_DEFINITION_PREFIX:          return "Definition (prefix)";
+case TK_CONTEXT_DEFINITION_SUFFIX:          return "Definition (suffix)";
+case TK_CONTEXT_DEFINITION_INFIX:           return "Definition (infix)";
+case TK_CONTEXT_EXPRESSION_TERNARY:         return "Expression (ternary)";
+case TK_CONTEXT_EXPRESSION_CAST:            return "Expression (cast)";
+case TK_CONTEXT_EXPRESSION_CAST_REINTERP:   return "Expression (!cast)";
+default:                                    return "UNKNOWN";
+    }
+}

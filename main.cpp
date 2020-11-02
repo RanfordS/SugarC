@@ -1,64 +1,18 @@
 #include "data.hpp"
+#include "tokenizer.hpp"
+#include "bracketer.hpp"
+#include "contextualizer.hpp"
+#include "highlighter.hpp"
 #include <sstream>
-/*
-std::string tokenNames[] =
-{   "TK_NONE"
-,   "TK_OPERATOR"
-,   "TK_COMMENT_LINE"
-,   "TK_COMMENT_BLOCK"
-,   "TK_LITERAL_CHAR"
-,   "TK_LITERAL_STRING"
-,   "TK_BRACKET_OPEN_ROUND"
-,   "TK_BRACKET_OPEN_SQUARE"
-,   "TK_BRACKET_OPEN_CURLY"
-,   "TK_BRACKET_OPEN_TERNARY"
-,   "TK_BRACKET_CLOSE_ROUND"
-,   "TK_BRACKET_CLOSE_SQUARE"
-,   "TK_BRACKET_CLOSE_CURLY"
-,   "TK_BRACKET_CLOSE_TERNARY"
-,   "TK_BRACKET_BLOCK_ROUND"
-,   "TK_BRACKET_BLOCK_SQUARE"
-,   "TK_BRACKET_BLOCK_CURLY"
-,   "TK_BRACKET_BLOCK_TERNARY"
-,   "TK_NUMBER"
-,   "TK_NUMBER_ZERO"
-,   "TK_NUMBER_INT_SIGNED"
-,   "TK_NUMBER_INT_UNSIGNED"
-,   "TK_NUMBER_INT_SPECIFIED_SIGNED"
-,   "TK_NUMBER_INT_SPECIFIED_UNSIGNED"
-,   "TK_NUMBER_BINARY"
-,   "TK_NUMBER_OCTAL"
-,   "TK_NUMBER_HEXIDECIMAL"
-,   "TK_NUMBER_DOUBLE"
-,   "TK_NUMBER_FLOAT"
-,   "TK_NUMBER_EXPONENTIAL_DOUBLE"
-,   "TK_NUMBER_EXPONENTIAL_FLOAT"
-,   "TK_NOUN"
-,   "TK_NOUN_KEYWORD"
-,   "TK_NOUN_TYPE"
-,   "TK_NOUN_VARIABLE"
-,   "TK_NOUN_OPERATOR"
-,   "TK_CONTEXT_FILE"
-,   "TK_CONTEXT_EXPRESSION_PREFIX"
-,   "TK_CONTEXT_EXPRESSION_INFIX"
-,   "TK_CONTEXT_EXPRESSION_SUFFIX"
-,   "TK_CONTEXT_EXPRESSION_TERNARY"
-,   "TK_CONTEXT_EXPRESSION_INDEX"
-};
 
 void disp (Token &root, int indent)
 {
-    std::printf ("%*sclass: %s\n", 4*indent, "", tokenNames[root.tokenClass].data ());
-    if (root.tokenClass == TK_COMMENT_LINE
-    ||  root.tokenClass == TK_COMMENT_BLOCK)
+    std::printf ("%*sclass: %s", 4*indent, "", getTokenName (root.tokenClass).data ());
+    if ((root.tokenClass & TK_CLASS_MASK) != TK_CLASS_COMMENT)
     {
-        return;
+        std::printf (" `%s`", root.raw.data ());
     }
-
-    if (!root.raw.empty ())
-    {
-        std::printf ("%*sraw: `%s`\n", 4*indent, "", root.raw.data ());
-    }
+    std::printf ("\n");
 
     for (auto &child : root.subtokens)
     {
@@ -69,7 +23,6 @@ void disp (Token &root, int indent)
         std::printf ("%*s<<\n", 4*indent, "");
     }
 }
-*/
 
 int main (int argc, char** argv)
 {
@@ -109,10 +62,10 @@ int main (int argc, char** argv)
     else
     {
         std::vector<Token> root;
-        alternateparse (input_file, root);
+        tokenizer (input_file, root);
 
         std::vector<BracketOffence> bracketOffences = {};
-        if (!bracketsvalidator (root, bracketOffences))
+        if (!bracketerValidate (root, bracketOffences))
         {
             for (auto offence : bracketOffences)
             {
@@ -133,9 +86,9 @@ int main (int argc, char** argv)
             }
         }
 
-        Token newroot = bracket (root);
+        Token newroot = bracketer (root);
 
-        bool context = contextparse (newroot);
+        contextualizer (newroot);
 
         disp (newroot, 0);
 

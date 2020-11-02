@@ -1,4 +1,4 @@
-#include "data.hpp"
+#include "contextualizer.hpp"
 
 /* header seeking
  *
@@ -80,7 +80,8 @@
 
 bool contextsubparse (Token &root, size_t round, size_t i)
 {
-    if (root.subtokens[i].tokenClass != TK_OPERATOR) return false;
+    if ((root.subtokens[i].tokenClass & TK_CLASS_MASK)
+    !=  TK_CLASS_OPERATOR) return false;
 
     uint8_t type = inbuildRounds[round].type;
     bool has_left = type & TKP_HAS_LEFT;
@@ -95,12 +96,12 @@ label_match_found:
 
     // TODO: does not skip past comments
     if (has_left)
-        if (root.subtokens[i-1].tokenClass & TKP_CONTEXT_CLASS_MASK
-                                          == TKP_CONTEXT_CLASS_EXP)
+        if ((root.subtokens[i-1].tokenClass & TKP_CONTEXT_CLASS_MASK)
+        == TKP_CONTEXT_CLASS_EXP)
             return false;
     if (has_right)
-        if (root.subtokens[i+1].tokenClass & TKP_CONTEXT_CLASS_MASK
-                                          == TKP_CONTEXT_CLASS_EXP)
+        if ((root.subtokens[i+1].tokenClass & TKP_CONTEXT_CLASS_MASK)
+        == TKP_CONTEXT_CLASS_EXP)
             return false;
 
     // check for possible non-unary variant of the operator
@@ -108,8 +109,8 @@ label_match_found:
     {
         for (auto alt_round : inbuildRounds)
         {
-            if (alt_round.type & (TKP_HAS_LEFT | TKP_HAS_RIGHT)
-                              == (TKP_HAS_LEFT | TKP_HAS_RIGHT))
+            if ((alt_round.type & TKP_SIDE_MASK)
+            ==  (TKP_HAS_LEFT | TKP_HAS_RIGHT))
             {
                 for (auto name : alt_round.operators)
                 {
@@ -158,7 +159,7 @@ label_match_found:
     expression.subtokens.push_back (root.subtokens[i]);
     if (has_right) expression.subtokens.push_back (root.subtokens[i+1]);
     expression.tokenClass = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_EXP
-                          | (type & TKP_SIDE_MASK);
+                          | TKP_CONTEXT_FUNCTION | (type & TKP_SIDE_MASK);
 
     root.subtokens.erase
         (root.subtokens.begin () + i - has_left,
@@ -168,7 +169,7 @@ label_match_found:
     return true;
 }
 
-bool contextparse (Token &root)
+bool contextualizer (Token &root)
 {
     bool success = true;
 
@@ -213,8 +214,8 @@ bool contextparse (Token &root)
     // do the rounds on any child blocks
     for (auto &child : root.subtokens)
     {
-        if (child.tokenClass & TK_CLASS_MASK == TK_CLASS_BRACKET)
-            contextparse (child);
+        if ((child.tokenClass & TK_CLASS_MASK) == TK_CLASS_BRACKET)
+            contextualizer (child);
     }
 
     return success;

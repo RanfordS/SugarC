@@ -1,86 +1,4 @@
-//#include "alternate.hpp"
-#include "data.hpp"
-/*
-const std::vector <std::string> inbuiltTypes
-{   "Bool"
-,   "Char"
-,   "Byte"
-,   "Int"
-,   "UInt"
-,   "Size"
-,   "Half"
-,   "Float"
-,   "Double"
-,   "Void"
-,   "Function"
-,   "Prefix"
-,   "Infix"
-,   "Suffix"
-,   "Enum"
-,   "BitField"
-,   "Struct"
-,   "Union"
-};
-
-const std::vector <std::string> inbuiltVariableTypes
-{   "Int"
-,   "UInt"
-};
-
-const std::vector <std::string> operators
-{   "++", "--"
-,   "+=", "-=", "*=", "/=", "%="
-,   "&=", "|=", "^="
-,   "==", "!=", "<=", ">="
-,   "&&", "||", "^^"
-,   "<<", ">>"
-,   "?:"
-,   "&&=", "||=", "^^="
-,   "<<=", ">>="
-};
-
-const std::vector <std::string> modifiers
-{   "Volatile"
-,   "Restricted"
-,   "Align8"
-,   "Align16"
-,   "Align32"
-,   "Align64"
-,   "Const"
-,   "Atomic"
-,   "Extern"
-,   "Inline"
-,   "Sugar"
-//,   "Mutable"
-};
-
-const std::vector <std::string> inbuildSugarConstants
-{   "true"
-,   "false"
-,   "null"
-};
-
-const std::vector <std::string> inbuildSugarFunctions
-{   "sizeof"
-,   "offsetof"
-};
-
-const std::vector <std::string> keywords
-{   "switch"
-,   "case"
-,   "default"
-,   "break"
-,   "do"
-,   "while"
-,   "for"
-,   "continue"
-,   "if"
-,   "else"
-,   "return"
-,   "goto"
-,   "label"
-};
-*/
+#include "tokenizer.hpp"
 
 bool isstandardtype (std::string raw)
 {
@@ -133,8 +51,8 @@ enum AdvanceReturns
 
 AdvanceReturns tokenAdvance (Token &token, char c)
 {
-    if (token.tokenClass & TK_CLASS_MASK != TK_CLASS_COMMENT
-    &&  token.tokenClass & TK_CLASS_MASK != TK_CLASS_LITERAL
+    if ((token.tokenClass & TK_CLASS_MASK) != TK_CLASS_COMMENT
+    &&  (token.tokenClass & TK_CLASS_MASK) != TK_CLASS_LITERAL
     &&  charIsWhitespace (c)) return AR_FINISHED_CHAR2NONE;
 
     switch (token.tokenClass)
@@ -465,7 +383,7 @@ void identifykeywords (std::vector <Token> &list)
         }
 }
 
-bool alternateparse (FILE* file, std::vector <Token> &list)
+bool tokenizer (FILE* file, std::vector <Token> &list)
 {
     bool success = true;
     uint8_t tab = 4;

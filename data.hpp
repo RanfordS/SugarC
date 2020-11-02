@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <string>
 #define RANGE(a,b,c) ((a) <= (b) && (b) <= (c))
@@ -55,7 +56,7 @@ enum TokenClass
 ,   TKP_BRACKET_CLASS_ROUND            = 0b00000000
 ,   TKP_BRACKET_CLASS_CURLY            = 0b00001000
 ,   TKP_BRACKET_CLASS_SQUARE           = 0b00010000
-,   TKP_BRACKET_CLASS_TERNARY          = 0b00010000
+,   TKP_BRACKET_CLASS_TERNARY          = 0b00011000
 
 ,   TK_BRACKET_OPEN_ROUND
     = TK_CLASS_BRACKET | TKP_BRACKET_CLASS_ROUND
@@ -169,12 +170,13 @@ enum TokenClass
 
 //  nouns
 
-,   TKP_NOUN_CLASS_MASK                = 0b11111000
+,   TKP_NOUN_CLASS_MASK                = 0b00111000
 ,   TKP_NOUN_CLASS_NONE                = 0b00000000
 ,   TKP_NOUN_CLASS_KEYWORD             = 0b00001000
 ,   TKP_NOUN_CLASS_TYPE                = 0b00010000
 ,   TKP_NOUN_CLASS_VARIABLE            = 0b00011000
 ,   TKP_NOUN_CLASS_FUNCTION            = 0b00100000
+,   TKP_NOUN_CLASS_PATH                = 0b00101000
 
 ,   TK_NOUN
     = TK_CLASS_NOUN | TKP_NOUN_CLASS_NONE
@@ -211,8 +213,8 @@ control
 expressions
 000 - ternary expression
 010 - cast expression
-110 - reinterpret cast expression
-100
+100 - reinterpret cast expression
+110
 001 - call expression or index expression
 011 - prefix expression
 111 - infix expression
@@ -249,8 +251,8 @@ definitions
 ,   TKP_CONTEXT_CONTROL_BRANCH         = 0b00100000
 ,   TKP_CONTEXT_CONTROL_STATEMENT      = 0b01000000
 ,   TKP_CONTEXT_EXPRESSION_TERNARY     = 0b00000000
-,   TKP_CONTEXT_EXPRESSION_CAST        = 0b00100000
-,   TKP_CONTEXT_EXPRESSION_REINTERP    = 0b01000000
+,   TKP_CONTEXT_EXPRESSION_CAST        = 0b01000000
+,   TKP_CONTEXT_EXPRESSION_REINTERP    = 0b10000000
 ,   TKP_CONTEXT_DECLARATION_VARIABLE   = 0b00000000
 ,   TKP_CONTEXT_DEFINITION_VARIABLE    = 0b00000000
 ,   TKP_CONTEXT_DEFINITION_TYPE        = 0b01000000
@@ -309,8 +311,18 @@ definitions
 
 ,   TK_CONTEXT_EXPRESSION_TERNARY
     = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_EXP
-    | TKP_HAS_LEFT | TKP_HAS_RIGHT
+    | TKP_CONTEXT_EXPRESSION_TERNARY
+
+,   TK_CONTEXT_EXPRESSION_CAST
+    = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_EXP
+    | TKP_CONTEXT_EXPRESSION_CAST
+
+,   TK_CONTEXT_EXPRESSION_CAST_REINTERP
+    = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_EXP
+    | TKP_CONTEXT_EXPRESSION_CAST | TKP_CONTEXT_EXPRESSION_REINTERP
 };
+
+extern std::string getTokenName (uint8_t tokenClass);
 
 struct Token
 {
