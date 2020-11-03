@@ -44,11 +44,11 @@ static void recursor (Token &token)
     {   std::printf ("\033[0m");
     }
 
-    if (majorClass == TK_CLASS_BRACKET
+    /*if (majorClass == TK_CLASS_BRACKET
     &&  (token.tokenClass & TKP_SIDE_MASK) == (TKP_HAS_LEFT | TKP_HAS_RIGHT))
     {   std::printf ("\033[D\033[0;5;34m>");
     }
-    else
+    else*/
     {   std::printf ("%s", token.raw.data ());
     }
 

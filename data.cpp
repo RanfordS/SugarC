@@ -55,6 +55,7 @@ const std::vector <std::string> keywords
 ,   "return"
 ,   "goto"
 ,   "label"
+,   "include"
 };
 
 const std::vector <std::string> operators
@@ -198,6 +199,7 @@ bool charIsOperator (char c)
         case '&': case '|': case '^': case '~':
         case '<': case '=': case '>': case '!':
         case '@': case '?': case ':': case ';':
+        case '(': case ')': case '[': case ']': case '{': case '}':
             return true;
             break;
     }
@@ -250,6 +252,9 @@ case TK_NOUN_VARIABLE:                      return "Noun (variable)";
 case TK_NOUN_TYPE:                          return "Noun (type)";
 case TK_NOUN_FUNCTION:                      return "Noun (function)";
 case TK_CONTEXT_FILE:                       return "Context (file)";
+case TK_CONTEXT_INCLUDE:                    return "Context (include)";
+case TK_CONTEXT_BRANCH:                     return "Context (branch)";
+case TK_CONTEXT_STATEMENT:                  return "Context (statement)";
 case TK_CONTEXT_EXPRESSION_CALL:            return "Expression (call)";
 case TK_CONTEXT_EXPRESSION_PREFIX:          return "Expression (prefix)";
 case TK_CONTEXT_EXPRESSION_SUFFIX:          return "Expression (suffix)";
@@ -265,6 +270,7 @@ case TK_CONTEXT_DEFINITION_INFIX:           return "Definition (infix)";
 case TK_CONTEXT_EXPRESSION_TERNARY:         return "Expression (ternary)";
 case TK_CONTEXT_EXPRESSION_CAST:            return "Expression (cast)";
 case TK_CONTEXT_EXPRESSION_CAST_REINTERP:   return "Expression (!cast)";
+case TK_CONTEXT_DEFINITION_TYPE:            return "Definition (type)";
 default:                                    return "UNKNOWN";
     }
 }

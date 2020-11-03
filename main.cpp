@@ -1,6 +1,7 @@
 #include "data.hpp"
 #include "tokenizer.hpp"
 #include "bracketer.hpp"
+#include "rootlevel.hpp"
 #include "contextualizer.hpp"
 #include "highlighter.hpp"
 #include <sstream>
@@ -8,7 +9,8 @@
 void disp (Token &root, int indent)
 {
     std::printf ("%*sclass: %s", 4*indent, "", getTokenName (root.tokenClass).data ());
-    if ((root.tokenClass & TK_CLASS_MASK) != TK_CLASS_COMMENT)
+    if ((root.tokenClass & TK_CLASS_MASK) != TK_CLASS_COMMENT
+    &&  !root.raw.empty ())
     {
         std::printf (" `%s`", root.raw.data ());
     }
@@ -87,12 +89,14 @@ int main (int argc, char** argv)
         }
 
         Token newroot = bracketer (root);
+        Token root3 = {};
+        std::printf ("rootlevel success: %i\n", rootlevel (newroot, root3));
 
-        contextualizer (newroot);
+        contextualizer (root3);
 
-        disp (newroot, 0);
+        disp (root3, 0);
 
-        highlighter (newroot.subtokens);
+        highlighter (root3.subtokens);
     }
 
     return 0;
