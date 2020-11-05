@@ -71,6 +71,7 @@ int main (int argc, char** argv)
         {
             for (auto offence : bracketOffences)
             {
+                std::printf ("[!] Bracket mismatch\n");
                 if (offence.number == 1)
                 {
                     Token t = offence.tokens[0];
@@ -86,13 +87,19 @@ int main (int argc, char** argv)
                             r.line, r.column, r.raw.data ());
                 }
             }
+            return 1;
         }
 
         Token newroot = bracketer (root);
         Token root3 = {};
-        std::printf ("rootlevel success: %i\n", rootlevel (newroot, root3));
+        if (!rootlevel (newroot, root3))
+        {
+            std::printf ("[!] Root level analysis failed\n");
+            return 1;
+        }
 
-        contextualizer (root3);
+        //contextualizer (root3);
+        rootlevelContextualizer (root3);
 
         disp (root3, 0);
 

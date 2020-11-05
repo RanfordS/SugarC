@@ -1,5 +1,5 @@
 #include "rootlevel.hpp"
-
+#include "tools.hpp"
 
 /* type-seeker ?
  *
@@ -87,6 +87,59 @@ enum RootLevelState
 ,   RLS_VARIABLE // 3 end
 };
 
+#ifdef DBG_ROOTLEVEL
+
+std::string RootLevelStateName[] =
+{   "RLS_NONE"
+
+,   "RLS_INCLUDE_KEY" // 1
+,   "RLS_INCLUDE_FILE" // 2
+,   "RLS_INCLUDE" // 3 end
+,   "RLS_INCLUDE_AS_KEY" // 3
+,   "RLS_INCLUDE_AS_NAME" // 4
+,   "RLS_INCLUDE_AS" // 5 end
+
+,   "RLS_TYPEDEF_TYPE" // 1
+,   "RLS_TYPEDEF_COLON" // 2
+,   "RLS_TYPEDEF_NAME" // 3
+,   "RLS_TYPEDEF" // 4 end
+
+,   "RLS_FUNCTION_TYPE" // 1 <->
+,   "RLS_FUNCTION_COLON" // 2
+,   "RLS_FUNCTION_NAME" // 3
+,   "RLS_FUNCTION_BRACKET" // 4
+,   "RLS_FUNCTION_DEC" // 5 end
+,   "RLS_FUNCTION_DEF" // 5 end
+
+,   "RLS_PREFIX_TYPE" // 1 <->
+,   "RLS_PREFIX_COLON" // 2
+,   "RLS_PREFIX_NAME" // 3
+,   "RLS_PREFIX_RIGHT" // 4
+,   "RLS_PREFIX_DEC" // 5 end
+,   "RLS_PREFIX_DEF" // 5 end
+
+,   "RLS_SUFFIX_TYPE" // 1 <->
+,   "RLS_SUFFIX_COLON" // 2
+,   "RLS_SUFFIX_LEFT" // 3
+,   "RLS_SUFFIX_NAME" // 4
+,   "RLS_SUFFIX_DEC" // 5 end
+,   "RLS_SUFFIX_DEF" // 5 end
+
+,   "RLS_INFIX_TYPE" // 1 <->
+,   "RLS_INFIX_COLON" // 2
+,   "RLS_INFIX_LEFT" // 3
+,   "RLS_INFIX_NAME" // 4
+,   "RLS_INFIX_RIGHT" // 5
+,   "RLS_INFIX_DEC" // 6 end
+,   "RLS_INFIX_DEF" // 6 end
+
+,   "RLS_VARIABLE_TYPE" // 1 <->
+,   "RLS_VARIABLE_COLON" // 2
+,   "RLS_VARIABLE" // 3 end
+};
+
+#endif
+
 bool rootlevel (Token &root, Token &newroot)
 {
     bool success = true;
@@ -104,6 +157,13 @@ bool rootlevel (Token &root, Token &newroot)
             newroot.subtokens.push_back (token);
             continue;
         }
+
+#ifdef DBG_ROOTLEVEL
+        std::printf ("Current state: %s\n", RootLevelStateName[state].data ());
+        std::printf ("Input token: %s\n", getTokenName (token.tokenClass).data ());
+        if (!token.raw.empty()) std::printf ("Raw: %s\n", token.raw.data ());
+        std::printf ("\n");
+#endif
 
         context.subtokens.push_back (token);
 
@@ -144,6 +204,10 @@ bool rootlevel (Token &root, Token &newroot)
                     if (token.raw == "Infix")
                     {
                         state = RLS_INFIX_TYPE;
+                    }
+                    else
+                    {
+                        state = RLS_VARIABLE_TYPE;
                     }
                 }
                 else
@@ -233,6 +297,18 @@ bool rootlevel (Token &root, Token &newroot)
             {
                 if (token.tokenClass == TK_CLASS_OPERATOR && token.raw == ":")
                 {
+                    // collect tokens into composite type
+                    Token type = {};
+                    type.tokenClass = TK_CONTEXT_DECLARATION_TYPE;
+                    groupTokens
+                    (   context.subtokens
+                    ,   0
+                    ,   context.subtokens.size () - 1
+                    ,   type
+                    );
+                    type.line = type.subtokens[0].line;
+                    type.column = type.subtokens[0].column;
+
                     ++state;
                 }
                 break;
@@ -391,7 +467,7 @@ bool rootlevel (Token &root, Token &newroot)
         }
     }
 
-    return success;
+    return success && context.subtokens.empty ();
 }
 
 

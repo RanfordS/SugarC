@@ -271,6 +271,7 @@ case TK_CONTEXT_EXPRESSION_TERNARY:         return "Expression (ternary)";
 case TK_CONTEXT_EXPRESSION_CAST:            return "Expression (cast)";
 case TK_CONTEXT_EXPRESSION_CAST_REINTERP:   return "Expression (!cast)";
 case TK_CONTEXT_DEFINITION_TYPE:            return "Definition (type)";
+case TK_CONTEXT_DECLARATION_TYPE:           return "Declaration (type)";
 default:                                    return "UNKNOWN";
     }
 }

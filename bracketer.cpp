@@ -84,6 +84,12 @@ Token bracketer (std::vector <Token> &list)
 
     for (auto token : list)
     {
+        if ((token.tokenClass & TK_CLASS_MASK) == TK_CLASS_COMMENT)
+        {
+            root.subtokens.push_back (token);
+            continue;
+        }
+
         if ((token.tokenClass & TK_CLASS_MASK) == TK_CLASS_BRACKET
         &&  (token.tokenClass & TKP_HAS_LEFT))
         {

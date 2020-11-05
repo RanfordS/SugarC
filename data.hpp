@@ -222,7 +222,7 @@ expressions
 
 declarations
 000 - variable declaration
-010
+010 - type declaration (collection of modifiers and a known type)
 100
 110
 001 - call declaration
@@ -233,7 +233,7 @@ declarations
 definitions
 000 - variable definition
 010 - type definition
-100 - member declaration
+100 - member definition
 110
 001 - call definition
 011 - prefix definition
@@ -335,9 +335,13 @@ definitions
     = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_EXP
     | TKP_CONTEXT_EXPRESSION_CAST | TKP_CONTEXT_EXPRESSION_REINTERP
 
+,   TK_CONTEXT_DECLARATION_TYPE
+    = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_DEC
+    | TKP_CONTEXT_DEFINITION_TYPE
+
 ,   TK_CONTEXT_DEFINITION_TYPE
     = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_DEF
-    | TKP_CONTEXT_CLASS_DEF | TKP_CONTEXT_DEFINITION_TYPE
+    | TKP_CONTEXT_DEFINITION_TYPE
 };
 
 extern std::string getTokenName (uint8_t tokenClass);

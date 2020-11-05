@@ -2,7 +2,7 @@
 
 Int: a = 1 ? 2+2 : 3;
 
-Float: foo (Int: bar)
+Function Float: foo (Int: bar)
 {
     a <<= +1;
 	//	non ascii characters, such as ランフォード,
@@ -10,14 +10,14 @@ Float: foo (Int: bar)
 	return bar + 1.0f;
 }
 
-Float: quadratic (a, b, c, x)
+Function Float: quadratic (a, b, c, x)
 {
     return a*x*x + b*x + c;
 }
 
 /*	Standard main file definition,
 	nothing much here */
-Int: main (argc, &&Char: argv)
+Function Int: main (argc, &&Char: argv)
 {
     for (Size: i = 0; i < 5; ++i)
     {

@@ -1,4 +1,5 @@
 #include "contextualizer.hpp"
+#include "tools.hpp"
 
 /* header seeking
  *
@@ -95,6 +96,7 @@ bool contextsubparse (Token &root, size_t round, size_t i)
 label_match_found:
 
     // TODO: does not skip past comments
+    /*
     if (has_left)
         if ((root.subtokens[i-1].tokenClass & TKP_CONTEXT_CLASS_MASK)
         == TKP_CONTEXT_CLASS_EXP)
@@ -103,6 +105,7 @@ label_match_found:
         if ((root.subtokens[i+1].tokenClass & TKP_CONTEXT_CLASS_MASK)
         == TKP_CONTEXT_CLASS_EXP)
             return false;
+    */
 
     // check for possible non-unary variant of the operator
     if (!has_left && i > 0)
@@ -124,47 +127,10 @@ label_match_found:
     Token expression = {};
     expression.line = root.subtokens[i].line;
     expression.column = root.subtokens[i].column;
-    /*
-    switch (type)
-    {
-        case OT_LTR_PREFIX:
-        case OT_RTL_PREFIX:
-            expression.tokenClass = TK_CONTEXT_EXPRESSION_PREFIX;
-            expression.subtokens.push_back (root.subtokens[i]);
-            expression.subtokens.push_back (root.subtokens[i+1]);
-            break;
-
-        case OT_LTR_INFIX:
-        case OT_RTL_INFIX:
-            expression.tokenClass = TK_CONTEXT_EXPRESSION_INFIX;
-            expression.subtokens.push_back (root.subtokens[i-1]);
-            expression.subtokens.push_back (root.subtokens[i]);
-            expression.subtokens.push_back (root.subtokens[i+1]);
-            break;
-
-        case OT_LTR_SUFFIX:
-        case OT_RTL_SUFFIX:
-            expression.tokenClass = TK_CONTEXT_EXPRESSION_SUFFIX;
-            expression.subtokens.push_back (root.subtokens[i-1]);
-            expression.subtokens.push_back (root.subtokens[i]);
-            break;
-
-        default:
-            return false;
-            break;
-    }
-    */
-
-    if (has_left) expression.subtokens.push_back (root.subtokens[i-1]);
-    expression.subtokens.push_back (root.subtokens[i]);
-    if (has_right) expression.subtokens.push_back (root.subtokens[i+1]);
     expression.tokenClass = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_EXP
                           | TKP_CONTEXT_FUNCTION | (type & TKP_SIDE_MASK);
 
-    root.subtokens.erase
-        (root.subtokens.begin () + i - has_left,
-         root.subtokens.begin () + i + 1 + has_right);
-    root.subtokens.emplace (root.subtokens.begin () + i - has_left, expression);
+    groupTokens (root.subtokens, i - has_left, has_left + 1 + has_right, expression);
 
     return true;
 }
@@ -218,6 +184,20 @@ bool contextualizer (Token &root)
             contextualizer (child);
     }
 
+    return success;
+}
+
+bool rootlevelContextualizer (Token &root)
+{
+    bool success = true;
+    for (auto &token : root.subtokens)
+    {
+        if ((token.tokenClass & (TK_CLASS_MASK | TKP_CONTEXT_CLASS_MASK | TKP_CONTEXT_FUNCTION))
+        ==  (TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_DEF | TKP_CONTEXT_FUNCTION))
+        {
+            success = success && contextualizer (token.subtokens.back ());
+        }
+    }
     return success;
 }
 
