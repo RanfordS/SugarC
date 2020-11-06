@@ -198,7 +198,7 @@ bool charIsOperator (char c)
         case '+': case '-': case '*': case '/': case '%':
         case '&': case '|': case '^': case '~':
         case '<': case '=': case '>': case '!':
-        case '@': case '?': case ':': case ';':
+        case '@': case '?': case ':': case ';': case ',':
         case '(': case ')': case '[': case ']': case '{': case '}':
             return true;
             break;
@@ -273,5 +273,35 @@ case TK_CONTEXT_EXPRESSION_CAST_REINTERP:   return "Expression (!cast)";
 case TK_CONTEXT_DEFINITION_TYPE:            return "Definition (type)";
 case TK_CONTEXT_DECLARATION_TYPE:           return "Declaration (type)";
 default:                                    return "UNKNOWN";
+    }
+}
+
+bool tokenIsExpression (uint8_t tokenClass)
+{
+    switch (tokenClass & TK_CLASS_MASK)
+    {
+        case TK_CLASS_CONTEXT:
+            return (tokenClass & TKP_CONTEXT_CLASS_MASK)
+                == TKP_CONTEXT_CLASS_EXP;
+
+        case TK_CLASS_BRACKET:
+            switch (tokenClass & TKP_BRACKET_CLASS_MASK)
+            {
+                case TKP_BRACKET_CLASS_ROUND:
+                    return true;
+
+                default:
+                    return false;
+            }
+
+        case TK_CLASS_NUMBER:
+        case TK_CLASS_LITERAL:
+            return true;
+
+        case TK_CLASS_NOUN:
+            return true;
+
+        default:
+            return false;
     }
 }

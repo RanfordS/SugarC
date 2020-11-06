@@ -1,4 +1,3 @@
-#include "contextualizer.hpp"
 #include "tools.hpp"
 
 /* header seeking
@@ -63,6 +62,108 @@
  * if () [Statement|{}] (else [Statement|{}])
  */
 
+bool contextOnToken (const OperatorRound &round, Token &block, size_t i)
+{
+    Token &token = block.subtokens[i];
+
+    bool needsLeft  = round.type & TKP_HAS_LEFT;
+    bool needsRight = round.type & TKP_HAS_RIGHT;
+
+    if ((round.type & TKP_SIDE_MASK) == ORT_LTR_TERNARY)
+    {
+        needsLeft  = true;
+        needsRight = true;
+    }
+
+    bool hasLeft = i > 0;
+    bool hasRight = i < block.subtokens.size () - 1;
+    if (hasLeft)  hasLeft  = tokenIsExpression (block.subtokens[i-1].tokenClass);
+    if (hasRight) hasRight = tokenIsExpression (block.subtokens[i+1].tokenClass);
+
+    // seek for alternate match
+    if ((!needsLeft  && hasLeft)
+    ||  (!needsRight && hasRight))
+        for (auto altRound : inbuildRounds)
+            if ((altRound.type & TKP_SIDE_MASK) == TKP_SIDE_MASK)
+                for (auto name : altRound.operators)
+                    if (name == token.raw)
+                        return false;
+
+    Token expression = {};
+
+    if ((token.tokenClass & TK_CLASS_MASK) == TK_CLASS_OPERATOR)
+    {
+        bool match = false;
+        for (auto name : round.operators)
+        {
+            if (name == token.raw)
+            {
+                expression.tokenClass
+                    = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_EXP
+                    | TKP_CONTEXT_FUNCTION | (round.type & TKP_SIDE_MASK);
+                match = true;
+                break;
+            }
+        }
+        if (!match)
+            return false;
+    }
+    else
+    {
+        switch (round.type & TKP_PARSE_MASK)
+        {
+            case TKP_PARSE_SUFFIX_INDEX_CALL:
+                if (token.tokenClass == TK_BRACKET_BLOCK_ROUND
+                ||  token.tokenClass == TK_BRACKET_BLOCK_SQUARE)
+                {
+                    expression.tokenClass = TK_CONTEXT_EXPRESSION_CALL;
+                }
+                else
+                /*if (custom suffix)
+                {
+                    expression.tokenClass = TK_CONTEXT_EXPRESSION_SUFFIX;
+                }*/
+                return false;
+                break;
+
+            case TKP_PARSE_PREFIX:
+                /*if (custom prefix)
+                {
+                    expression.tokenClass = TK_CONTEXT_EXPRESSION_PREFIX;
+                }*/
+                return false;
+                break;
+
+            case TKP_PARSE_INFIX:
+                /*if (custom prefix)
+                {
+                    expression.tokenClass = TK_CONTEXT_EXPRESSION_INFIX;
+                }*/
+                return false;
+                break;
+
+            case TKP_PARSE_TERNARY:
+                if (token.tokenClass == TK_BRACKET_BLOCK_TERNARY)
+                {
+                    expression.tokenClass = TK_CONTEXT_EXPRESSION_TERNARY;
+                }
+                return false;
+                break;
+
+            default:
+                return false;
+        }
+    }
+
+    groupTokens
+    (   block.subtokens
+    ,   i - needsLeft
+    ,   needsLeft + 1 + needsRight
+    ,   expression
+    );
+    return true;
+}
+
 // prefix:
 // i-2 i-1 i+0 i+1 i+2
 //  ?   ?  pfx exp  ?
@@ -79,162 +180,66 @@
 //  ?  cmp  ?   ?
 // <--     -->
 
-bool contextsubparse (Token &root, size_t round, size_t i)
-{
-    if ((root.subtokens[i].tokenClass & TK_CLASS_MASK)
-    !=  TK_CLASS_OPERATOR) return false;
-
-    uint8_t type = inbuildRounds[round].type;
-    bool has_left = type & TKP_HAS_LEFT;
-    bool has_right = type & TKP_HAS_RIGHT;
-
-    for (auto name : inbuildRounds[round].operators)
-    {
-        if (name == root.subtokens[i].raw) goto label_match_found;
-    }
-    return false;
-label_match_found:
-
-    // TODO: does not skip past comments
-    /*
-    if (has_left)
-        if ((root.subtokens[i-1].tokenClass & TKP_CONTEXT_CLASS_MASK)
-        == TKP_CONTEXT_CLASS_EXP)
-            return false;
-    if (has_right)
-        if ((root.subtokens[i+1].tokenClass & TKP_CONTEXT_CLASS_MASK)
-        == TKP_CONTEXT_CLASS_EXP)
-            return false;
-    */
-
-    // check for possible non-unary variant of the operator
-    if (!has_left && i > 0)
-    {
-        for (auto alt_round : inbuildRounds)
-        {
-            if ((alt_round.type & TKP_SIDE_MASK)
-            ==  (TKP_HAS_LEFT | TKP_HAS_RIGHT))
-            {
-                for (auto name : alt_round.operators)
-                {
-                    if (name == root.subtokens[i].raw)
-                        return false;
-                }
-            }
-        }
-    }
-
-    Token expression = {};
-    expression.line = root.subtokens[i].line;
-    expression.column = root.subtokens[i].column;
-    expression.tokenClass = TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_EXP
-                          | TKP_CONTEXT_FUNCTION | (type & TKP_SIDE_MASK);
-
-    groupTokens (root.subtokens, i - has_left, has_left + 1 + has_right, expression);
-
-    return true;
-}
-
-bool contextualizer (Token &root)
+bool contextBlock (Token &block)
 {
     bool success = true;
-
-    // do the rounds
-    size_t round = 0;
-    while (round < inbuildRounds.size ())
+    for (auto &round : inbuildRounds)
     {
-        uint8_t type = inbuildRounds[round].type;
-        bool has_left = type & TKP_HAS_LEFT;
-        bool has_right = type & TKP_HAS_RIGHT;
+        bool needsLeft  = round.type & TKP_HAS_LEFT;
+        bool needsRight = round.type & TKP_HAS_RIGHT;
 
-        // ensure there are enough tokens
-        if (has_left + (size_t)1 + has_right > root.subtokens.size ())
+        if ((round.type & TKP_SIDE_MASK) == ORT_LTR_TERNARY)
         {
-            ++round;
-            continue;
+            needsLeft  = true;
+            needsRight = true;
         }
 
-        if (type & TKP_PARSE_RIGHT_TO_LEFT)
+        size_t minimumCount = needsLeft + 1 + needsRight;
+        if (block.subtokens.size () < minimumCount) continue;
+
+        if (round.type & TKP_PARSE_RIGHT_TO_LEFT)
         {
-            size_t i = root.subtokens.size () - 1 - has_right;
-            while (i - has_left < (size_t)(-2))
+            size_t i = block.subtokens.size () - 1 - needsRight;
+
+            while (i - needsLeft < (size_t)(-2))
             {
-                bool match = contextsubparse (root, round, i);
-                if (match && has_left) --i;
-                --i;
+                bool match = contextOnToken (round, block, i);
+                i -= 1 + (match && needsLeft);
             }
         }
         else
         {
-            size_t i = 0 + has_left;
-            while (i + has_right < root.subtokens.size ())
+            size_t i = needsLeft;
+            while (i + needsRight < block.subtokens.size ())
             {
-                bool match = contextsubparse (root, round, i);
-                if (!match || !has_left) ++i;
+                bool match = contextOnToken (round, block, i);
+                i += !(match && needsLeft);
             }
         }
-
-        ++round;
     }
-
-    // do the rounds on any child blocks
-    for (auto &child : root.subtokens)
+    for (auto &child : block.subtokens)
     {
         if ((child.tokenClass & TK_CLASS_MASK) == TK_CLASS_BRACKET)
-            contextualizer (child);
+            success &= contextBlock (child);
     }
-
     return success;
 }
 
-bool rootlevelContextualizer (Token &root)
+bool contextualizer (Token &root)
 {
+    const uint8_t mask =
+        TK_CLASS_MASK    | TKP_CONTEXT_CLASS_MASK | TKP_CONTEXT_FUNCTION;
+    const uint8_t targ =
+        TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_DEF  | TKP_CONTEXT_FUNCTION;
+
     bool success = true;
-    for (auto &token : root.subtokens)
+    for (Token &token : root.subtokens)
     {
-        if ((token.tokenClass & (TK_CLASS_MASK | TKP_CONTEXT_CLASS_MASK | TKP_CONTEXT_FUNCTION))
-        ==  (TK_CLASS_CONTEXT | TKP_CONTEXT_CLASS_DEF | TKP_CONTEXT_FUNCTION))
+        if ((token.tokenClass & mask) == targ
+        ||   token.tokenClass == TK_CONTEXT_STATEMENT)
         {
-            success = success && contextualizer (token.subtokens.back ());
+            success &= contextBlock (token.subtokens.back ());
         }
     }
     return success;
 }
-
-
-
-
-struct DefinitionVariable
-{
-    std::string name;
-    Token declaration;
-};
-
-struct DefintionFunction
-{
-    std::string name;
-    std::vector<Token> arg_types;
-    Token return_type;
-};
-
-struct DefinitionPrefix
-{
-    std::string name;
-    Token arg_type;
-};
-
-struct DefinitionInfix
-{
-    Token left_arg_type;
-    std::string name;
-    Token right_arg_type;
-};
-
-struct DefinitionSuffix
-{
-    Token arg_type;
-    std::string name;
-};
-
-
-

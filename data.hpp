@@ -211,10 +211,10 @@ control
 111
 
 expressions
-000 - ternary expression
+000
 010 - cast expression
 100 - reinterpret cast expression
-110
+110 - ternary expression
 001 - call expression or index expression
 011 - prefix expression
 111 - infix expression
@@ -382,4 +382,4 @@ extern bool charIsWhitespace (char c);
 extern bool charIsLetter (char c);
 extern bool charIsOperator (char c);
 extern bool charIsValid (char c);
-
+extern bool tokenIsExpression (uint8_t tokenClass);

@@ -87,6 +87,8 @@ enum RootLevelState
 ,   RLS_VARIABLE // 3 end
 };
 
+//#define DBG_ROOTLEVEL
+
 #ifdef DBG_ROOTLEVEL
 
 std::string RootLevelStateName[] =
@@ -162,7 +164,6 @@ bool rootlevel (Token &root, Token &newroot)
         std::printf ("Current state: %s\n", RootLevelStateName[state].data ());
         std::printf ("Input token: %s\n", getTokenName (token.tokenClass).data ());
         if (!token.raw.empty()) std::printf ("Raw: %s\n", token.raw.data ());
-        std::printf ("\n");
 #endif
 
         context.subtokens.push_back (token);
@@ -254,11 +255,22 @@ bool rootlevel (Token &root, Token &newroot)
             case RLS_INCLUDE_AS_KEY:
             case RLS_TYPEDEF_COLON:
             case RLS_FUNCTION_COLON:
+            {
+                if (token.tokenClass != TK_NOUN)
+                {
+                    return false;
+                }
+                ++state;
+                break;
+            }
+
+            // requires single noun or operator
             case RLS_PREFIX_COLON:
             case RLS_SUFFIX_LEFT:
             case RLS_INFIX_LEFT:
             {
-                if (token.tokenClass != TK_NOUN)
+                if (token.tokenClass != TK_NOUN
+                &&  token.tokenClass != TK_OPERATOR)
                 {
                     return false;
                 }
@@ -337,12 +349,23 @@ bool rootlevel (Token &root, Token &newroot)
 
             // round bracket next
             case RLS_FUNCTION_NAME:
+            {
+                if (token.tokenClass != TK_BRACKET_BLOCK_ROUND)
+                {
+                    return false;
+                }
+                ++state;
+                break;
+            }
+
+            // round bracket or noun
             case RLS_PREFIX_NAME:
             case RLS_INFIX_COLON:
             case RLS_INFIX_NAME:
             case RLS_SUFFIX_COLON:
             {
-                if (token.tokenClass != TK_BRACKET_BLOCK_ROUND)
+                if (token.tokenClass != TK_BRACKET_BLOCK_ROUND
+                &&  token.tokenClass != TK_NOUN)
                 {
                     return false;
                 }
@@ -461,10 +484,17 @@ bool rootlevel (Token &root, Token &newroot)
 
         if (complete)
         {
+#ifdef DBG_ROOTLEVEL
+            std::printf ("Push\n");
+#endif
             newroot.subtokens.push_back (context);
             context = {};
             state = RLS_NONE;
         }
+
+#ifdef DBG_ROOTLEVEL
+        std::printf ("\n");
+#endif
     }
 
     return success && context.subtokens.empty ();

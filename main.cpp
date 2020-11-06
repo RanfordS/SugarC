@@ -64,7 +64,11 @@ int main (int argc, char** argv)
     else
     {
         std::vector<Token> root;
-        tokenizer (input_file, root);
+        if (!tokenizer (input_file, root))
+        {
+            std::printf ("[!] tokenizer error\n");
+            return 1;
+        }
 
         std::vector<BracketOffence> bracketOffences = {};
         if (!bracketerValidate (root, bracketOffences))
@@ -98,8 +102,8 @@ int main (int argc, char** argv)
             return 1;
         }
 
-        //contextualizer (root3);
-        rootlevelContextualizer (root3);
+        contextualizer (root3);
+        //rootlevelContextualizer (root3);
 
         disp (root3, 0);
 

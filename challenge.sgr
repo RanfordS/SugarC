@@ -2,7 +2,26 @@ include "stdio" -> io;
 
 Struct: Vec3
 {
-    Float Array[3] v;
+    Float Array[3]: v;
+
+    Sugar: [i]
+    {
+        return v[i];
+    }
+
+    Sugar: x { return [0]; }
+    Sugar: y { return [1]; }
+    Sugar: z { return [2]; }
+}
+
+Infix Vec3: a + b
+{
+    Vec3: c = {};
+    for (Size: i -> 3)
+    {
+        c.v[i] = a.v[i] + b.v[i];
+    }
+    return c;
 }
 
 Infix Float: (Vec3: a) dot (Vec3: b);
@@ -18,7 +37,7 @@ Function Int: main (argc, &&Char: argv)
 Infix Float: (Vec3: a) dot (Vec3: b)
 {
     Float: sum = 0;
-    for (Int: i -> 3)
+    for (Int8: i -> 3)
         sum += a.v[i]*b.v[i];
     return sum;
 }
