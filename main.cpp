@@ -8,7 +8,13 @@
 
 void disp (Token &root, int indent)
 {
-    std::printf ("%*sclass: %s", 4*indent, "", getTokenName (root.tokenClass).data ());
+    std::printf
+    (   "%*s[%lu,%lu] - class: %s"
+    ,   4*indent, ""
+    ,   root.line
+    ,   root.column
+    ,   getTokenName (root.tokenClass).data ()
+    );
     if ((root.tokenClass & TK_CLASS_MASK) != TK_CLASS_COMMENT
     &&  !root.raw.empty ())
     {

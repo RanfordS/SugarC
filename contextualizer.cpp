@@ -90,6 +90,8 @@ bool contextOnToken (const OperatorRound &round, Token &block, size_t i)
                         return false;
 
     Token expression = {};
+    expression.line = token.line;
+    expression.column = token.column;
 
     if ((token.tokenClass & TK_CLASS_MASK) == TK_CLASS_OPERATOR)
     {

@@ -215,6 +215,8 @@ bool rootlevel (Token &root, Token &newroot)
                 {
                     state = RLS_VARIABLE_TYPE;
                 }
+                context.line = token.line;
+                context.column = token.column;
                 break;
             }
 
@@ -312,14 +314,15 @@ bool rootlevel (Token &root, Token &newroot)
                     // collect tokens into composite type
                     Token type = {};
                     type.tokenClass = TK_CONTEXT_DECLARATION_TYPE;
+                    type.line = context.subtokens[0].line;
+                    type.column = context.subtokens[0].column;
+
                     groupTokens
                     (   context.subtokens
                     ,   0
                     ,   context.subtokens.size () - 1
                     ,   type
                     );
-                    type.line = type.subtokens[0].line;
-                    type.column = type.subtokens[0].column;
 
                     ++state;
                 }
