@@ -169,7 +169,7 @@ Infix Sugar: (a) or (b)
 
 
 
-// example sguar usage
+// example sugar usage
 
 c = a or b;
 f = (c+1) and (d-1);

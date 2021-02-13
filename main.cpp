@@ -76,6 +76,9 @@ int main (int argc, char** argv)
             return 1;
         }
 
+        highlighter (root);
+
+        /*
         std::vector<BracketOffence> bracketOffences = {};
         if (!bracketerValidate (root, bracketOffences))
         {
@@ -114,6 +117,7 @@ int main (int argc, char** argv)
         disp (root3, 0);
 
         highlighter (root3.subtokens);
+        */
     }
 
     return 0;

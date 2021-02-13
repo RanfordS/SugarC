@@ -172,6 +172,8 @@ AdvanceReturns tokenAdvance (Token &token, char c)
                     return AR_INVALID_TOKEN;
                 return AR_FINISHED_CHAR2THIS;
             }
+            return AR_CONTINUE;
+            break;
         }
 
         case TK_LITERAL_STRING:
@@ -374,6 +376,10 @@ void identifykeywords (std::vector <Token> &list)
     for (auto &token : list)
         if (token.tokenClass == TK_NOUN)
         {
+            for (auto modifier : modifiers)
+                if (token.raw == modifier)
+                    token.tokenClass = TK_NOUN_TYPE;
+
             for (auto keyword : keywords)
                 if (token.raw == keyword)
                     token.tokenClass = TK_NOUN_KEYWORD;

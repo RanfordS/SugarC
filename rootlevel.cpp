@@ -1,3 +1,5 @@
+#define DBG_ROOTLEVEL
+
 #include "rootlevel.hpp"
 #include "tools.hpp"
 
