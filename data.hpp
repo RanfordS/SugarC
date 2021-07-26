@@ -27,10 +27,7 @@ enum TokenClass
 ,   TKP_PARSE_TERNARY                  = 0b00000011
 ,   TKP_PARSE_SIMPLE                   = 0b00011111
 
-//  simple
-
-,   TKP_COMMENT_BLOCK                  = 0b00001000
-,   TKP_LITTERAL_STRING                = 0b00001000
+// simple
 
 ,   TK_NONE
     = TK_CLASS_NONE
@@ -38,11 +35,26 @@ enum TokenClass
 ,   TK_OPERATOR
     = TK_CLASS_OPERATOR
 
+//  comments
+
+,   TKP_COMMENT_BLOCK                  = 0b00001000
+,   TKP_COMMENT_DOCUMENT               = 0b00010000
+
 ,   TK_COMMENT_LINE
     = TK_CLASS_COMMENT
 
 ,   TK_COMMENT_BLOCK
     = TK_CLASS_COMMENT | TKP_COMMENT_BLOCK
+
+,   TK_COMMENT_DOCUMENT_LINE
+    = TK_CLASS_COMMENT | TKP_COMMENT_DOCUMENT
+
+,   TK_COMMENT_DOCUMENT_BLOCK
+    = TK_CLASS_COMMENT | TKP_COMMENT_BLOCK | TKP_COMMENT_DOCUMENT
+
+// strings
+
+,   TKP_LITTERAL_STRING                = 0b00001000
 
 ,   TK_LITERAL_CHAR
     = TK_CLASS_LITERAL

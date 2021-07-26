@@ -135,6 +135,16 @@ AdvanceReturns tokenAdvance (Token &token, char c)
                 return AR_CONTINUE;
             }
 
+            if (preview == "``")
+            {   token.tokenClass = TK_COMMENT_DOCUMENT_LINE;
+                return AR_CONTINUE;
+            }
+
+            if (preview == "`*")
+            {   token.tokenClass = TK_COMMENT_DOCUMENT_BLOCK;
+                return AR_CONTINUE;
+            }
+
             for (auto name : operators)
             {   if (name == preview) return AR_CONTINUE;
             }
@@ -146,6 +156,7 @@ AdvanceReturns tokenAdvance (Token &token, char c)
         // delimited
 
         case TK_COMMENT_LINE:
+        case TK_COMMENT_DOCUMENT_LINE:
         {
             return c == '\n' ? AR_FINISHED_CHAR2THIS : AR_CONTINUE;
             break;
@@ -157,6 +168,17 @@ AdvanceReturns tokenAdvance (Token &token, char c)
             {
                 const char* end = token.raw.data () + token.raw.size () - 2;
                 std::string close = "*/";
+                if (end == close) return AR_FINISHED_CHAR2THIS;
+            }
+            return AR_CONTINUE;
+        }
+
+        case TK_COMMENT_DOCUMENT_BLOCK:
+        {
+            if (token.raw.size () > 3)
+            {
+                const char* end = token.raw.data () + token.raw.size () - 2;
+                std::string close = "*`";
                 if (end == close) return AR_FINISHED_CHAR2THIS;
             }
             return AR_CONTINUE;

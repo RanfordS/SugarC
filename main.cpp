@@ -9,7 +9,7 @@
 void disp (Token &root, int indent)
 {
     std::printf
-    (   "%*s[%lu,%lu] - class: %s"
+    (   "%*s[%u,%u] - class: %s"
     ,   4*indent, ""
     ,   root.line
     ,   root.column
@@ -77,6 +77,17 @@ int main (int argc, char** argv)
         }
 
         highlighter (root);
+
+        /* - //
+        for (Token &token : root)
+        {
+            std::printf
+            (   "%24s - %s\n"
+            ,   getTokenName (token.tokenClass).data()
+            ,   token.raw.data()
+            );
+        }
+        // - */
 
         /*
         std::vector<BracketOffence> bracketOffences = {};

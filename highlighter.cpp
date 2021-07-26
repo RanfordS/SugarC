@@ -3,14 +3,19 @@
 
 static void recursor (Token &token)
 {
-    std::printf ("\033[%lu;%luH", token.line, token.column + 4);
+    std::printf ("\033[%u;%uH", token.line, token.column + 4);
     uint8_t majorClass = token.tokenClass & TK_CLASS_MASK;
 
     // 1-bold, 3-italics, 4-underline, 5-blink, 7-inverted
-    // 31-red, 32-green, 33-yellow, 34-blue, 35-purple, 36-teal
+    // 31-red, 32-green, 33-yellow, 34-blue, 35-purple, 36-teal, 37-white
 
     if (majorClass == TK_CLASS_COMMENT)
-    {   std::printf ("\033[0;3;31m");
+    {   if (token.tokenClass & TKP_COMMENT_DOCUMENT)
+        {   std::printf ("\033[0;3;37m");
+        }
+        else
+        {   std::printf ("\033[0;3;31m");
+        }
     }
     else
     if (majorClass == TK_CLASS_LITERAL)

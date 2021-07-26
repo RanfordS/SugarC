@@ -1,0 +1,74 @@
+\documentclass[a4paper]{book}
+\usepackage[margin=1cm]{geometry}
+\usepackage{rail}
+
+\begin{document}
+%\begin{rail}
+%    decl : 'def' identifier '=' ( expression + ';' )
+%    | 'type' identifier '=' type
+%    ;
+%\end{rail}
+%\begin{rail}
+%    number
+%    : '0' (('b'|'B') (('0'|'1') +) | (('0-7') +) | ('x'|'X') ('0-9,a-f,A-F' +));
+%\end{rail}
+
+\chapter{Basic Tokens}
+\section{Numbers}
+\begin{rail}
+    binary : '0' ('b'|'B') (('0'|'1') +);
+    octal : '0' (('0-7') +);
+    hex : '0' ('x'|'X') ('0-9,a-f,A-F' +);
+    genericint : '1-9' ('0-9' +);
+    signedint : genericint ('i'|'I');
+    unsignedint : genericint ('u'|'U');
+    specifiedint : signedint genericint;
+    specifieduint : unsignedint genericint;
+    double : '0-9' '.' '0-9';
+    float : double ('f'|'F');
+    expdouble : (double | int) ('e'|'E') (()|'+'|'-') genericint;
+    expfloat : expdouble ('f'|'F');
+    integer : binary | octal | hex | genericint | signedint | unsignedint | specifiedint | specifieduint;
+    decimal : double | float | expdouble | expfloat;
+    number : integer | decimal;
+\end{rail}
+\section{Nouns}
+\begin{rail}
+    nouninitial : 'a-z'|'A-Z';
+    noun : nouninitial ((()|nouninitial|'0-9') +);
+\end{rail}
+%\begin{tikzpicture}
+%
+%    \node (none) at (0,8) {none};
+%
+%    \node (noun) at (4,8) {noun};
+%    \node (zero) at (4,6) {number (zero)};
+%    \node (number) at (4,0) {number};
+%
+%    \node (binnumi) at (8,9) {binary*};
+%    \node (binnum) at (12,9) {binary};
+%    \node (octnum) at (8,7) {octal};
+%    \node (hexnumi) at (8,5) {hexidecimal*};
+%    \node (hexnum) at (12,5) {hexidecimal};
+%    \node (double) at (8,3) {double};
+%    \node (float) at (12,1) {float};
+%
+%    \draw[->] (none.east) -- node[below] {0} (zero.west);
+%    \draw[->] (none.east) -- node[below] {1-9} (number.west);
+%
+%    \draw[->] (zero.east) -- node[below] {b,B} (binnumi.west);
+%    \draw[->] (zero.east) -- node[below] {0-7} (octnum.west);
+%    \draw[->] (zero.east) -- node[below] {x,X} (hexnumi.west);
+%    \draw[->] (zero.east) -- node[below] {.} (double.west);
+%    \draw[->] (number.east) -- node[below] {.} (double.west);
+%    \draw[->] (binnumi.east) -- node[above] {0,1} (binnum.west);
+%    \draw[->] (hexnumi.east) -- node[above] {0-9,a-f,A-F} (hexnum.west);
+%    \draw (binnum) to[out=45,in=135] node[above] {0,1} (binnum);
+%    \draw (octnum) to[out=45,in=135] node[above] {0-7} (octnum);
+%    \draw (hexnum) to[out=45,in=135] node[above] {0-9,a-f,A-F} (hexnum);
+%    \draw (number) to[out=45,in=135] node[above] {0-9} (number);
+%    \draw (double) to[out=45,in=135] node[above] {0-9} (double);
+%    \draw[->] (double.east) -- node[below] {f,F} (float.west);
+%
+%\end{tikzpicture}
+\end{document}

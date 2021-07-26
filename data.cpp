@@ -188,7 +188,7 @@ bool charIsLetter (char c)
             return true;
             break;
     }
-    return RANGE('A',c,'Z') || RANGE('a',c,'z');
+    return RANGE('a',c,'z') || RANGE('A',c,'Z');
 }
 
 bool charIsOperator (char c)
@@ -196,9 +196,9 @@ bool charIsOperator (char c)
     switch (c)
     {
         case '+': case '-': case '*': case '/': case '%':
-        case '&': case '|': case '^': case '~':
+        case '&': case '|': case '^': case '~': case '`':
         case '<': case '=': case '>': case '!':
-        case '@': case '?': case ':': case ';': case ',':
+        case '@': case '?': case ':': case ';': case '.': case ',':
         case '(': case ')': case '[': case ']': case '{': case '}':
             return true;
             break;
@@ -219,6 +219,8 @@ case TK_NONE:                               return "None";
 case TK_OPERATOR:                           return "Operator";
 case TK_COMMENT_LINE:                       return "Comment (line)";
 case TK_COMMENT_BLOCK:                      return "Comment (block)";
+case TK_COMMENT_DOCUMENT_LINE:              return "Document (line)";
+case TK_COMMENT_DOCUMENT_BLOCK:             return "Document (block)";
 case TK_LITERAL_CHAR:                       return "Char";
 case TK_LITERAL_STRING:                     return "String";
 case TK_BRACKET_OPEN_ROUND:                 return "Bracket (open round)";
