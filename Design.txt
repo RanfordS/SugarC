@@ -5,13 +5,20 @@ Consistent naming convention
 e.g. all types use PascalCase
 
 Custom operators
-e.g. `Infix Float: (Vec: a) dot (Vec: b)`
+e.g. `Infix Float: (Vec: a) \dot (Vec: b) {...}`
 
 Implict type continuation
-e.g. `Vec: swap (v, Int: i, j)`
+e.g. `Vec: swap (v, Int: i, j) {...}`
 
 Pointer declarations that are easier to understand
-e.g. `int *const a` -> `Const &Int: a`
+e.g. `int *const a;` -> `Const &Int: a;`
+
+Slightly better syntax order for addressing and dereferencing.
+e.g. `int *ptr = &some.value;` -> `&Int: ptr = some.value&;`
+e.g. `int value = *some.ptr;` -> `Int: value = some.ptr@;`
+
+One language for both program and macros.
+e.g. `#define SOME_CONST 420` -> `Sugar Int: SOME_CONST = 420;`
 
 
 ~@> Declarations
@@ -83,8 +90,8 @@ Float: x = v.x;                 // `.` for pointers equivalent to C `->`
 &SomeStruct: structure;
 Int: val = @structure.ptr       // @ dereferences `ptr`, not `structure`
 
-Array[n] Double: values;
-SomeStruct Array[n]: soa;       // structure of arrays declaration?
+[n] Double: values;
+SomeStruct[n]: soa;       // structure of arrays declaration?
 
 
 
@@ -95,7 +102,7 @@ Function Int: main (argc, &&Char: argv)
 
 
 
-Void: qsort (&Void: base, Size: nitem, size, Function Int: compar (&Const Void: a, b));
+Void: qsort (&Void: base, Size: nitem, size, Function Int: compar (&Const Void: 2));
 
 Function Int: cmpfunc (&Const Void: a, b)
 {
@@ -114,7 +121,7 @@ Float: b = 1.0f + (!Float: a);
 
 ~@> Infix Example
 
-Infix Float: (Vec3: a) dot (b)
+Infix Float: (Vec3: a) \dot (Vec3: b)
 {
     Float: acc = 0;
     for (Size: i -> 3)
@@ -124,7 +131,7 @@ Infix Float: (Vec3: a) dot (b)
 }
 
 Vec3: u, v;
-Float: udv = u dot v;
+Float: udv = u \dot v;
 
 
 
@@ -144,21 +151,21 @@ Sugar: min (a, b)
     return b;
 }
 
-Prefix Sugar: not (a)
+Prefix Sugar: \not (a)
 {
     return !a;
 }
 
 // short-circuit and/or
 
-Infix Sugar: (a) and (b)
+Infix Sugar: (a) \and (b)
 {
     if (a)
         return b;
     return a;
 }
 
-Infix Sugar: (a) or (b)
+Infix Sugar: (a) \or (b)
 {
     if (!a)
         return b;
@@ -171,8 +178,8 @@ Infix Sugar: (a) or (b)
 
 // example sugar usage
 
-c = a or b;
-f = (c+1) and (d-1);
+c = a \or b;
+f = (c+1) \and (d-1);
 
 // expands to
 
@@ -215,6 +222,7 @@ Float   (float)
 Double  (double)
 Void
 Function
+[]
 
 Enum
 BitField      { Acts like Enum, but members are numbered according to (1 << i) }

@@ -1,11 +1,10 @@
 
-
 Sugar for (Size: $N = 2; $N <= 4; ++$N)
 {
     // `` Mathematical vector type with $N components. ``
     Struct: Vec#$N
     {
-        Array[$N] Float: data;
+        [$N] Float: data;
 
         Sugar switch ($N)
         {
@@ -21,7 +20,7 @@ Sugar for (Size: $N = 2; $N <= 4; ++$N)
         }
 
         Sugar: [i] { return self.data[i]; }
-        Sugar Float: .mag { return Math.sqrt (self dot self); }
+        Sugar Float: .mag { return Math.sqrt (self \dot self); }
 
         Sugar if (N == 2)
             Sugar self: .swap
@@ -58,3 +57,4 @@ Sugar for (Size: $N = 2; $N <= 4; ++$N)
         return vec#$N#_sum (a*b);
     }
 }
+

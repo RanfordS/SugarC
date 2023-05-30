@@ -2,19 +2,19 @@ include "stdio" -> io;
 
 Struct: Vec3
 {
-    Float Array[3]: v;
+    [3] Float: v;
 
     Sugar: [i]
     {
         return v[i];
     }
 
-    Sugar: x { return [0]; }
-    Sugar: y { return [1]; }
-    Sugar: z { return [2]; }
+    Sugar: .x { return [0]; }
+    Sugar: .y { return [1]; }
+    Sugar: .z { return [2]; }
 }
 
-Infix Vec3: a + b
+Infix Vec3: (a) + (b)
 {
     Vec3: c = {};
     for (Size: i -> 3)
@@ -24,17 +24,17 @@ Infix Vec3: a + b
     return c;
 }
 
-Infix Float: (Vec3: a) dot (Vec3: b);
+Infix Float: (Vec3: a) \dot (Vec3: b);
 
 Function Int: main (argc, &&Char: argv)
 {
     Vec3: a = {.v = {0,1,2}}, b = {.v = {2,2,1}};
-    Float: c = a /*awkward comment*/ dot b + 1;
+    Float: c = a /*awkward comment*/ \dot b + 1;
     io.printf ("The answer is %f\n", c);
     return 0;
 }
 
-Infix Float: (Vec3: a) dot (Vec3: b)
+Infix Float: (Vec3: a) \dot (Vec3: b)
 {
     Float: sum = 0;
     for (Int8: i -> 3)

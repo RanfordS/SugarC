@@ -1,0 +1,30 @@
+
+`*  An example implementation of the "Fast Inverse Square Root" used in Quake 3
+    written in SugarC. Function matches the Wikipedia entry code snippet
+    functionality line by line.
+    
+    Advantages over the original C:
+    - Integer type size explicitly listed, thus avoiding the weird `long` type
+    - Float type size explicitly listed, this makes it obvious that `i` and `y`
+      are the same size.
+    - Language support for bit casting types, no pointer fiddling, no unions.
+      C++ has `std::bit_cast<Float> (number)` which is hideous, as expected.
+    For completeness, the original bit hack would look like this is SugarC
+    `i = (&Int32: y&)@;`.
+ *`
+Function Float32: q_rsqrt (number)
+{
+    Int32: i;
+    Float32: x2, y;
+    Const Float: threehalfs = 1.5f;
+
+    x2 = number*0.5f;
+    y  = number;
+    i  = (!Int32: y);               // bit cast, see comment block above
+    i  = 0x5F3759DF - (i >> 1);     // what the fuck?
+    y  = (!Float32: i);
+    y  = y*(threehalfs - (x2*y*y)); // 1st iteration
+``  y  = y*(threehalfs - (x2*y*y)); // 2nd iteration, this can be removed
+
+    return y;
+}

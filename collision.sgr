@@ -1,17 +1,16 @@
 
-
 Function Float:
 physicsHullCollisionTime (&PhysicsHullReference: ref0, ref1, Float dt)
 {
     PhysicsHullInstance: inst0, inst1;
-    &inst0 from ref0;
-    &inst1 from ref1;
+    &inst0 \from ref0;
+    &inst1 \from ref1;
 
     Float: tEvent = 0.0f;
     while (true)
     {
-        &inst0 at tEvent;
-        &inst1 at tEvent;
+        &inst0 \at tEvent;
+        &inst1 \at tEvent;
         PhysicsHullFeatures features = physicsHullFeatures (&inst0, &inst1);
 
         &Function Float: separation (&PhysicsHullInstance 2, &SeparationMeta);
@@ -20,16 +19,16 @@ physicsHullCollisionTime (&PhysicsHullReference: ref0, ref1, Float dt)
         switch (features.featureClass)
         {
             case 0x11:
-                separation = &separationPointVsPoint;
+                separation = separationPointVsPoint&;
                 break;
 
             case 0x12:
-                separation = &separationLineVsPoint;
+                separation = separationLineVsPoint&;
                 break;
 
             case 0x21:
             case 0x22:
-                separation = &separationPointVsLine;
+                separation = separationPointVsLine&;
                 break;
 
             default:
@@ -40,10 +39,10 @@ physicsHullCollisionTime (&PhysicsHullReference: ref0, ref1, Float dt)
 
         Float: tUpper = dt;
 
-        Float: sEvent = @separation (&inst0, &inst1, &meta);
-        &inst0 at tUpper;
-        &inst1 at tUpper;
-        Float: sUpper = @separation (&inst0, &inst1, &meta);
+        Float: sEvent = separation@ (&inst0, &inst1, &meta);
+        &inst0 \at tUpper;
+        &inst1 \at tUpper;
+        Float: sUpper = separation@ (&inst0, &inst1, &meta);
 
         if (sUpper > 0.0f)
         {   tEvent = -1.0f;
@@ -58,9 +57,9 @@ physicsHullCollisionTime (&PhysicsHullReference: ref0, ref1, Float dt)
         while (!(sEvent < PHYS_HULL_TOL))
         {
             Float: tNew = (tEvent + tUpper)/2.0f;
-            &inst0 at tNew;
-            &inst1 at tNew;
-            Float: sNew = @separation (&inst0, &inst1, &meta);
+            &inst0 \at tNew;
+            &inst1 \at tNew;
+            Float: sNew = separation@ (&inst0, &inst1, &meta);
 
             if (sNew > 0)
             {   sEvent = sNew;
@@ -75,7 +74,8 @@ physicsHullCollisionTime (&PhysicsHullReference: ref0, ref1, Float dt)
     }
 
     label result;
-    delete &inst0;
-    delete &inst1;
+    \delete &inst0;
+    \delete &inst1;
     return tEvent;
 }
+
