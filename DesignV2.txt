@@ -1,0 +1,164 @@
+Standard Naming Convention
+- `PascalCase` types
+- `lower_snake_case` variables, functions, custom operators
+- `UPPER_SNAKE_CASE` sugar variables
+
+Standard Types
+- Bool
+- Char
+- Byte
+- Int
+- UInt
+- Size
+- Half
+- Float
+- Double
+- Void
+- Function
+- Enum
+- BitField
+- Struct
+
+Type Modifiers
+- Volatile
+- Restrict
+- Align8
+- Align16
+- Align32
+- Align64
+- Const
+- Atomic
+- Inline
+- Prefix
+- Infix
+- Suffix
+- Sugar
+
+Keywords
+- if
+- else
+- do
+- while
+- for
+- goto
+- label
+- switch
+- case
+- default
+- break
+- continue
+- return
+
+Symbols
+┌────────┬────────────────┬────┬───┐
+│ Sequ   │ Name           │ i  │ = │
+╞════════╪════════════════╪════╪═══╡
+│ +$     │ Unary Plus     │  2 │   │ ⎫
+│ -$     │ Unary Minus    │  2 │   │ ⎬ Arithmetic
+│ $=$    │ Assignment     │ 15 │   │ ⎪
+│ $+$    │ Addition       │  4 │ ✓ │ ⎪
+│ $-$    │ Subtraction    │  4 │ ✓ │ ⎪
+│ $*$    │ Multiplication │  3 │ ✓ │ ⎪
+│ $/$    │ Division       │  3 │ ✓ │ ⎪
+│ $%$    │ Modulus        │  3 │ ✓ │ ⎪
+│ ++$    │ Preincrement   │  2 │   │ ⎪
+│ $++    │ Postincrement  │  1 │   │ ⎪
+│ --$    │ Predecrement   │  2 │   │ ⎪
+│ $--    │ Postdecrement  │  1 │   │ ⎭
+├────────┼────────────────┼────┼───┤
+│ $==$   │ Equality       │  7 │   │ ⎫
+│ $!=$   │ Inequality     │  7 │   │ ⎬ Comparitive
+│ $>$    │ Greater Than   │  6 │   │ ⎪
+│ $>=$   │   or Equal To  │  6 │   │ ⎪
+│ $<$    │ Less Than      │  6 │   │ ⎪
+│ $<=$   │   or Equal To  │  6 │   │ ⎭
+├────────┼────────────────┼────┼───┤
+│ !$     │ NOT            │  2 │   │ ⎫
+│ $&&$   │ AND            │ 11 │ ~ │ ⎬ Logical
+│ $||$   │ OR             │ 13 │ ~ │ ⎪
+│ $^^$   │ XOR            │ 12 │ ~ │ ⎭
+├────────┼────────────────┼────┼───┤
+│ ~$     │ NOT            │  2 │   │ ⎫
+│ $&$    │ AND            │  8 │ ✓ │ ⎬ Bitwise
+│ $|$    │ OR             │ 10 │ ✓ │ ⎪
+│ $^$    │ XOR            │  9 │ ✓ │ ⎪
+│ $<<$   │ Shift Left     │  5 │ ✓ │ ⎪
+│ $>>$   │ Shift Right    │  5 │ ✓ │ ⎭
+├────────┼────────────────┼────┼───┤
+│ $[$]   │ Index          │  1 │   │ ⎫
+│ $.$    │ Member of      │  1 │   │ ⎬ Logical
+│ &$     │ Address of     │  2 │   │ ⎪
+│ @$     │ At Address     │  2 │   │ ⎭
+├────────┼────────────────┼────┼───┤
+│ $($)   │ Function Call  │  1 │   │ ⎫
+│ $?$:$  │ Ternary        │ 16 │   │ ⎬ Other
+│ ($:$)  │ Cast           │ -- │   │ ⎪
+│ (!$:$) │ Reinterpret    │ -- │   │ ⎪
+│ $->$   │ Loop Range     │ -- │   │ ⎪
+│ $;     │ End Statement  │ -- │   │ ⎭
+├────────┼────────────────┼────┼───┤
+│        │ Suffix Noun    │  1 │   │ ⎫
+│        │ Prefix Noun    │  2 │   │ ⎬ User
+│        │ Infix Noun     │  3 │   │ ⎭
+└────────┴────────────────┴────┴───┘
+
+Operator Binding
+ 1 → Suffix, Index, Call
+ 2 ← Prefix
+ 3 → Tight Arithmetic Infix
+ 4 → Loose Arithmetic Infix
+ 5 → Shift Operators
+ 6 → Greater and Lesser Comparisons
+ 7 → Equality and Inequality Comparisons
+ 8 → Bitwise AND
+ 9 → Bitwise XOR
+10 → Bitwise OR
+11 → Logical AND
+12 → Logical XOR
+13 → Logical OR
+14 → Loop Range (?)
+15 → Assignment
+16 ← Ternary
+
+┌────────────────────────────────────────────────────────────────────┐
+│ Root Tokens                                                        │
+├──────────┬──────────────────────────────┬─────────────────┬────────┤
+│ Noun     │ Number                       │ Symbol Sequence │ String │
+├──────────┼──────────────────┬───────────┼─────────────────┤        │
+│ Type     │ Integer          │ Decimal   │ Operator        │        │
+│ Variable ├──────────────────┼───────────┤ Comment Line    │        │
+│ Prefix   │ Binary           │ Float     │ Comment Block   │        │
+│ Infix    │ Octal            │ Double    │ Document Line   │        │
+│ Suffix   │ Hex              │ ExpFloat  │ Document Block  │        │
+│ Modifier │ Specified Int    │ ExpDouble │ Open Bracket    │        │
+│ Function │ Unspecified Int  │           │ Close Bracket   │        │
+│ Keyword  │ Specified UInt   │           │                 │        │
+│          │ Unspecified UInt │           │                 │        │
+│          │ Char             │           │                 │        │
+└──────────┴──────────────────┴───────────┴─────────────────┴────────┘
+
+Composite Tokens
+- Expression
+- Statement 
+- Bracket/Block
+
+
+
+
+┌─┬─┐
+│ │ │ ⎫
+╞═╪═╡ ⎪
+│ │ │ ⎬
+├─┼─┤ ⎪
+│ │ │ ⎭
+└─┴─┘
+
+
+
+
+
+
+
+
+
+

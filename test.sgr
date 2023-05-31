@@ -2,6 +2,7 @@
 
 Int: a = 1 ? 2+2 : 3;
 
+`` Shifts a and returns bar+1
 Function Float: foo (Int: bar)
 {
     a <<= +1;
@@ -10,7 +11,7 @@ Function Float: foo (Int: bar)
 	return bar + 1.0f;
 }
 
-Function Float: quadratic (a, b, c, x)
+Function Float: quadratic (a, b, c, `*value to evaluate*` x)
 {
     return a*x*x + b*x + c;
 }
