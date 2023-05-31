@@ -1,16 +1,16 @@
 ~@> Summary of Goals
 
 
-Consistent naming convention
+Consistent naming convention.
 e.g. all types use PascalCase
 
-Custom operators
+Custom operators.
 e.g. `Infix Float: (Vec: a) \dot (Vec: b) {...}`
 
-Implict type continuation
+Implict type continuation.
 e.g. `Vec: swap (v, Int: i, j) {...}`
 
-Pointer declarations that are easier to understand
+Pointer declarations that are easier to understand.
 e.g. `int *const a;` -> `Const &Int: a;`
 
 Slightly better syntax order for addressing and dereferencing.
@@ -18,7 +18,11 @@ e.g. `int *ptr = &some.value;` -> `&Int: ptr = some.value&;`
 e.g. `int value = *some.ptr;` -> `Int: value = some.ptr@;`
 
 One language for both program and macros.
-e.g. `#define SOME_CONST 420` -> `Sugar Int: SOME_CONST = 420;`
+e.g. `#define SOME_CONST 420` -> `Sugar Int: someConst = 420;`
+
+Easy to change between runtime and comptime via the Sugar keyword.
+
+Reasonable test system 
 
 
 ~@> Declarations
@@ -253,6 +257,23 @@ if else
 goto label
 return
 
+~@> Annotations
+
+File          { For compilation options }
+ReadOnly
+WriteOnly
+Const
+Pure
+Test
+Inline
+Debug
+Cold
+Deprecated
+Hot
+NoReturn
+NonNull
+
+
 ~@> Operators
 
 Category:
@@ -281,13 +302,13 @@ Comparitive:
       or equal to   $<=$
 
 Logical:
-    Not             !$
+    Not             $!
     And             $&&$    $&&=$
     Or              $||$    $||=$
     Xor             $^^$    $^^=$
 
 Bitwise:
-    Not             ~$
+    Not             $~
     And             $&$     $&=$
     Or              $|$     $|=$
     Xor             $^$     $^=$

@@ -7,11 +7,11 @@ Standard Types
 - Bool
 - Char
 - Byte
-- Int
-- UInt
+- Int*
+- UInt*
 - Size
 - Half
-- Float
+- Float*
 - Double
 - Void
 - Function
@@ -33,6 +33,8 @@ Type Modifiers
 - Infix
 - Suffix
 - Sugar
+- []     (array)
+- &      (address)
 
 Keywords
 - if
@@ -87,8 +89,8 @@ Symbols
 ├────────┼────────────────┼────┼───┤
 │ $[$]   │ Index          │  1 │   │ ⎫
 │ $.$    │ Member of      │  1 │   │ ⎬ Logical
-│ &$     │ Address of     │  2 │   │ ⎪
-│ @$     │ At Address     │  2 │   │ ⎭
+│ $&     │ Address of     │  2 │   │ ⎪
+│ $@     │ At Address     │  2 │   │ ⎭
 ├────────┼────────────────┼────┼───┤
 │ $($)   │ Function Call  │  1 │   │ ⎫
 │ $?$:$  │ Ternary        │ 16 │   │ ⎬ Other

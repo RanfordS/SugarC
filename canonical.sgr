@@ -1,0 +1,17 @@
+`` Canonical example for SugarC
+
+include "vector" -> vec;
+
+`*  Entry point to the program, matches the standard C definition.
+ *  \param argc Number of arguments passed to the program.
+ *  \param argv 
+ *`
+Function Int: main (argc, &&Char argv)
+{
+    print ("Hello world");
+    return 0;
+}
+
+
+
+`` EOF

@@ -1,0 +1,15 @@
+
+Sugar for (Int: n -> {8, 16, 32, 64})
+{
+    `*  Counts the number of leading zeros.
+     *`
+    `[Pure]`
+    Sugar UInt8: (UInt#n | Int#n).leadingZeros
+    {
+        for (UInt8: i -> n)
+        {
+            if ((self << i) & (1u#n << (n-1))) return i;
+        }
+    }
+}
+

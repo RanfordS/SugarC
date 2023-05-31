@@ -1,7 +1,7 @@
 
-Sugar for (Size: $N = 2; $N <= 4; ++$N)
+Sugar for (Size: $N = 2 ->| 4)
 {
-    // `` Mathematical vector type with $N components. ``
+    `` Mathematical vector type with $N components.
     Struct: Vec#$N
     {
         [$N] Float: data;

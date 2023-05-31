@@ -1,0 +1,101 @@
+`*  \file
+    Utilities for working with utf8 strings.
+ *`
+
+`*  Is true when the character is part of the plain ASCII region.
+ *`
+`[Pure]`
+Sugar: Char.isAscii
+{
+    return self < 128;
+}
+
+`*  Is true when the character is a white-space ASCII character.
+ *`
+`[Pure]`
+Sugar: Char.isWhitespace
+{
+    switch (self)
+    {
+        case ' ', '\t', '\r', '\n':
+            return true;
+        
+        default:
+            return false;
+    }
+}
+
+`*  Is true when the character is a numeric ASCII character.
+ *`
+`[Pure]`
+Sugar: Char.isNumber
+{
+    return '0' <= self <= '9';
+}
+
+`*  Is true when the character is an ASCII letter or underscore.
+ *`
+`[Pure]`
+Sugar: Char.isLetter
+{
+    return 'a' <= self <= 'z'
+        || 'A' <= self <= 'Z'
+        || self == '_';
+}
+
+`*  Reads the given char stream and returns whether it's valid UTF-8.
+ *  \param string Null terminated
+ *`
+`[Pure]`
+Function Bool: isUTF8 (&Char: string)
+{
+    UInt8: expecting = 0;
+    while (Size: i = 0; Char: curr = string[i]; ++i)
+    {
+        UInt8: leading = curr~.leadingZeros;
+
+        if (expecting)
+        {
+            // multi-byte character must be finished before start of next.
+            if (leading != 1) return false;
+            --expecting;
+        }
+        else
+        {
+            switch (leading)
+            {
+                case 2, 3, 4:
+                    expecting = leading - 1;
+                    break;
+
+                case 0:
+                    break;
+
+                default:
+                    // lengths above 4 are not valid and length 1 is not valid
+                    // as a leading character
+                    return false;
+            }
+        }
+    }
+    // any multi-byte character must be finished by end of string.
+    if (expecting) return false;
+
+    return true;
+}
+
+`[Test]` Function: isUTF8_ascii ()
+{
+    return isUTF8 ("Hello world") == true;
+}
+`[Test]` Function: isUTF8_incompleted ()
+{
+    []Char: beta = {128, 0};
+    return isUTF8 (beta) == false;
+}
+`[Test]` Function: isUTF8_multibyte ()
+{
+    return isUTF8 ("£13.10 ◉") == true;
+}
+
+// EOF //
