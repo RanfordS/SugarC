@@ -12,6 +12,3 @@ Function Int: main (argc, &&Char argv)
     return 0;
 }
 
-
-
-`` EOF
