@@ -1,0 +1,68 @@
+
+`` original for loop
+for (i -> 8)                                            `` Int: [0,8)
+for (i = 3 -> 8)                                        `` Int: [3,8)
+for (Int8: i = 3 -> 8)                                  `` Int8:[3,8)
+for (Int8: i = 3 ->| 8)                                 `` Int8:[3,8]
+for (Int8: i = 3 -<| 8)                                 `` Int8:[3,8] reversed
+for (Int8: i = 8; i <= 3; i -= 2)                       `` standard c style
+
+for (Int8: i -> 8)
+
+`` type annotation for loop
+for (i -> 8)                                            `` Int: [0,8)
+for (i = 3 -> 8)                                        `` Int: [3,8)
+for (i: Int8 = 3 -> 8)                                  `` Int8:[3,8)
+for (i: Int8 = 3 ->| 8)                                 `` Int8:[3,8]
+for (i: Int8 = 3 -<| 8)                                 `` Int8:[3,8] reversed
+
+for (Int8: i -> 8)
+
+`` Jai-esque types/declarations for loop
+for (i :-> 8)                                           `` Int: [0,8)
+for (i := 3 -> 8)                                       `` Int: [3,8)
+for (i: Int8 = 3 -> 8)                                  `` Int8:[3,8)
+for (i: Int8 = 3 ->| 8)                                 `` Int8:[3,8]
+for (i: Int8 = 3 -<| 8)                                 `` Int8:[3,8] reversed
+
+for (i: Int8 -> 8)                                      `` Int8:[0,8)
+
+
+
+`` original extraction
+/* code */                                              `` regular code
+{ /* code */ }                                          `` code block
+Function Void: name (Void) { /* code */ }               `` as a function
+
+`` arrow function extraction
+/* code */                                              `` regular code
+{ /* code */ }                                          `` code block
+[capture]{ /* code */ }                                 `` code block with capture
+Function (Void) -> Void: [capture]{ /* code */ }        `` as a lambda
+Function (Void) -> Void: name [capture]{ /* code */ }   `` as a function
+
+
+
+`` original indirection
+Int:  a;
+&Int: b = a&;
+Int:  c = b@;
+
+`` type annotation indirection
+a: Int;
+b: &Int = a&;
+c: Int  = b@;
+
+
+[]Char: long_multiline_string =
+    `\tI can't tell you how
+    `I knew - but I did know that I had crossed
+    `the border. Everything I loved was lost
+    `but no aorta could report regret,
+    `a sun of rubber was convulsed and set.
+    `A blood black nothingness began to spin
+    `a system of cells interlinked within
+    `cells interlinked within cells interlinked
+    `and dreadfully distinct
+    `against the dark a tall white fountain played.
+    

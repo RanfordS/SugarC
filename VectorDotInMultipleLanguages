@@ -1,0 +1,179 @@
+
+\begin{C}
+
+// define the function
+float vec3Dot (Vec3 a, Vec3 b)
+{
+    float c = 0;
+    for (int i = 0; i < 3; ++i)
+    {
+        c += a.v[i]*b.v[i];
+    }
+    return c;
+}
+
+// no syntax niceness for operator
+
+// usage
+c = vec3Dot (a, b);
+
+\end{C}
+
+\begin{Lua}
+
+-- define the function
+function Vec3.Dot (a, b)
+    local c = 0
+    for i = 1, 3
+    do
+        c = c + a[i]*b[i]
+    end
+    return c
+end
+
+-- syntax niceness
+setmetatable (..., Vec3.Metatable)
+
+-- usage
+c = a:dot(b)
+
+\end{Lua}
+
+\begin{Rust}
+
+// define the function
+fn vector3Dot (a: Vec3, b: Vec3) -> f32
+{
+    let c: f32 = 0;
+    for i in 0..3
+    {
+        c += a.v[i]*b.v[i];
+    }
+    c
+}
+
+// syntax niceness
+impl Vector3
+{
+    fn dot (self, other: Vec3) -> f32
+    {
+        vector3Dot (self, other)
+    }
+}
+
+// usage
+c = a.dot(b);
+
+\end{Rust}
+
+\begin{Jai}
+
+// define the function
+vec3Dot :: (a : Vec3, b : Vec3)
+{
+    c : float = 0;
+    for 0..2 { c += a.v[it]*b.v[it]; }
+    return c;
+}
+
+// no proper syntax niceness, all we can do is put it in the Vec3 namespace
+
+// usage
+c = vec3Dot (a, b);
+// or
+c = Vec3.dot (a, b);
+
+\end{Jai}
+
+\begin{SugarC-Original}
+
+// define the function
+Function Float: vec3_dot (Vec3: a, b)
+{
+    Float c = 0;
+    for (Int: i -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+
+// syntax niceness
+Sugar Infix: (Vec3: a) \dot (Vec3: b)
+{ return vec3_dot (a, v); }
+
+// usage
+c = a \dot b;
+
+\end{SugarC-Original}
+
+\begin{SugarC-ArgsInType}
+
+// define the function
+Function Float (Vec3: a, b): vec3_dot
+{
+    Float: c = 0;
+    for (Int: i -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+
+// syntax niceness
+Infix (Vec3: a, b): \dot
+{ return vec3_dot (a, b); }
+
+// usage
+c = a \dot b;
+
+\end{SugarC-ArgsInType}
+
+\begin{SugarC-ArgsInType}
+
+// define the function
+Function Float (Vec3: a, b): vec3_dot
+{
+    Float: c = 0;
+    for (Int: i -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+
+// syntax niceness
+Infix : \dot = vec3_dot;
+
+// usage
+c = a \dot b;
+
+\end{SugarC-ArgsInType}
+
+\begin{SugarC-TypeAfterName}
+
+// define the function
+vec3_dot : Function Float (Vec3: a, b)
+{
+    c : Float = 0;
+    for (i : Int -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+
+// syntax niceness
+\dot: Infix vec3_dot;
+
+// usage
+c = a \dot b;
+
+\end{SugarC-TypeAfterName}
+
+\begin{SugarC-ArrowNotation}
+
+// define the function
+Function (Vec3: a, b) -> Vec3: vec3_dot
+{
+    Float: c = 0;
+    for (Int: i -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+
+// syntax niceness
+Infix: \dot = vec3_dot;
+
+// usage
+c = a \dot b;
+
+\end{SugarC-ArrowNotation}
+

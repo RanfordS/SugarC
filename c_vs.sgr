@@ -1,0 +1,123 @@
+
+/* C
+
+int main (int argc, char** argv)
+{
+    return 0;
+}
+
+float vec3Dot (Vec3 a, Vec3 b)
+{
+    float c = 0;
+    for (int i = 0; i < 3; ++i) c += a.v[i]*b.v[i];
+    return c;
+}
+
+c = vec3Dot (a, b);
+
+*/
+
+Function Int: main (argc, &&Char: argv)
+{
+    return 0;
+}
+
+Function Float: vec3Dot (Vec3: a, b)
+{
+    Float c = 0;
+    for (Int: i -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+Sugar Infix: (Vec3: a) \dot (Vec3: b)
+{ return vec3Dot (a, v); }
+
+c = a \dot b;
+
+/* Jai
+
+main :: (argc : int, argv : **char)
+{
+    return 0;
+}
+
+vec3Dot :: (a : Vec3, b : Vec3)
+{
+    c : float = 0;
+    for 0..2 { c += a[it]*b[it]; }
+    return c;
+}
+
+c = vec3Dot (a, b);
+
+*/
+
+Function Int (argc, &&Char: argv): main
+{
+    return 0;
+}
+
+Function Float (Vec3: a, b): vec3Dot
+{
+    Float: c = 0;
+    for (Int: i -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+Infix (Vec3: a, b): \dot
+{ return vec3Dot (a, b); }
+
+c = a \dot b;
+
+//
+
+main : Function Int (argc, argv : &&Char)
+{
+    return 0;
+}
+
+vec3Dot : Function Float (Vec3: a, b)
+{
+    c : Float = 0;
+    for (i : Int -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+
+\dot : Infix (Vec3: a, b)
+{ return vec3Dot (a, b); }
+
+//
+
+Int <- (argc, &&Char: argv): main
+{
+    return 0;
+}
+
+Float <- (Vec3: a, b): vec3Dot
+{
+    Float: c = 0;
+    for (Int: i -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+Infix (Vec3: a, b): \dot
+{ return vec3Dot (a, b); }
+
+c = a \dot b;
+
+//
+
+(argc, &&Char: argv) -> Int: main
+{
+    return 0;
+}
+
+(Vec3: a, b) -> Float: vec3Dot
+{
+    Float: c = 0;
+    for (Int: i -> 3) { c += a[i]*b[i]; }
+    return c;
+}
+Infix (Vec3: a, b): \dot
+{ return vec3Dot (a, b); }
+
+c = a \dot b;
+
+// EOF //
