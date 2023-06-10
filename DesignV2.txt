@@ -1,4 +1,4 @@
-Standard Naming Convention
+tandard Naming Convention
 - `PascalCase` types
 - `lower_snake_case` variables, functions, custom operators
 - `UPPER_SNAKE_CASE` sugar variables
@@ -75,12 +75,12 @@ Symbols
 │ $<$    │ Less Than      │  6 │   │ ⎪
 │ $<=$   │   or Equal To  │  6 │   │ ⎭
 ├────────┼────────────────┼────┼───┤
-│ !$     │ NOT            │  2 │   │ ⎫
+│ $!     │ NOT            │  2 │   │ ⎫
 │ $&&$   │ AND            │ 11 │ ~ │ ⎬ Logical
 │ $||$   │ OR             │ 13 │ ~ │ ⎪
 │ $^^$   │ XOR            │ 12 │ ~ │ ⎭
 ├────────┼────────────────┼────┼───┤
-│ ~$     │ NOT            │  2 │   │ ⎫
+│ $~     │ NOT            │  2 │   │ ⎫
 │ $&$    │ AND            │  8 │ ✓ │ ⎬ Bitwise
 │ $|$    │ OR             │ 10 │ ✓ │ ⎪
 │ $^$    │ XOR            │  9 │ ✓ │ ⎪
@@ -88,7 +88,7 @@ Symbols
 │ $>>$   │ Shift Right    │  5 │ ✓ │ ⎭
 ├────────┼────────────────┼────┼───┤
 │ $[$]   │ Index          │  1 │   │ ⎫
-│ $.$    │ Member of      │  1 │   │ ⎬ Logical
+│ $.$    │ Member of      │  1 │   │ ⎬ Access
 │ $&     │ Address of     │  2 │   │ ⎪
 │ $@     │ At Address     │  2 │   │ ⎭
 ├────────┼────────────────┼────┼───┤
@@ -99,12 +99,19 @@ Symbols
 │ $->$   │ Loop Range     │ -- │   │ ⎪
 │ $;     │ End Statement  │ -- │   │ ⎭
 ├────────┼────────────────┼────┼───┤
-│        │ Suffix Noun    │  1 │   │ ⎫
-│        │ Prefix Noun    │  2 │   │ ⎬ User
-│        │ Infix Noun     │  3 │   │ ⎭
+│ $ \s   │ Suffix Noun    │  1 │   │ ⎫
+│   \p $ │ Prefix Noun    │  2 │   │ ⎬ User
+│ $ \i $ │ Infix Noun     │  3 │   │ ⎭
 └────────┴────────────────┴────┴───┘
 
 Operator Binding
+ 1 → $.$ $[$] $! $@ $& $~ $++ $($) $\s
+ 2 ← ++$ 
+
+ x → ($:$) (!$:$)
+ x → Assignment
+
+Old Operator Binding
  1 → Suffix, Index, Call
  2 ← Prefix
  3 → Tight Arithmetic Infix

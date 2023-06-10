@@ -71,7 +71,7 @@ c = a.dot(b);
 // define the function
 vec3Dot :: (a : Vec3, b : Vec3)
 {
-    c : float = 0;
+    c : float;
     for 0..2 { c += a.v[it]*b.v[it]; }
     return c;
 }
@@ -82,6 +82,9 @@ vec3Dot :: (a : Vec3, b : Vec3)
 c = vec3Dot (a, b);
 // or
 c = Vec3.dot (a, b);
+// or
+using Vec3
+c = dot (a, b);
 
 \end{Jai}
 
@@ -97,7 +100,7 @@ Function Float: vec3_dot (Vec3: a, b)
 
 // syntax niceness
 Sugar Infix: (Vec3: a) \dot (Vec3: b)
-{ return vec3_dot (a, v); }
+{ return vec3_dot (a, b); }
 
 // usage
 c = a \dot b;
@@ -123,28 +126,10 @@ c = a \dot b;
 
 \end{SugarC-ArgsInType}
 
-\begin{SugarC-ArgsInType}
-
-// define the function
-Function Float (Vec3: a, b): vec3_dot
-{
-    Float: c = 0;
-    for (Int: i -> 3) { c += a[i]*b[i]; }
-    return c;
-}
-
-// syntax niceness
-Infix : \dot = vec3_dot;
-
-// usage
-c = a \dot b;
-
-\end{SugarC-ArgsInType}
-
 \begin{SugarC-TypeAfterName}
 
 // define the function
-vec3_dot : Function Float (Vec3: a, b)
+vec3_dot : Function Float (a : Vec3, b : Vec3)
 {
     c : Float = 0;
     for (i : Int -> 3) { c += a[i]*b[i]; }

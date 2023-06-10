@@ -1,6 +1,6 @@
 `` Canonical example for SugarC
 
-include "vector" -> vec;
+include "vector";
 
 `*  Entry point to the program, matches the standard C definition.
  *  \param argc Number of arguments passed to the program.
