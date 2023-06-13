@@ -1,0 +1,90 @@
+
+Function (&PhysicsHullReference: ref0, ref1, Float dt) -> (Float: tEvent = 0.0f):
+physicsHullCollisionTime
+{
+    PhysicsHullInstance: inst0, inst1;
+    &inst0 \from ref0; defer \delete ref0;
+    &inst1 \from ref1; defer \delete ref1;
+
+    while true
+    {
+        &inst0 \at tEvent;
+        &inst1 \at tEvent;
+        PhysicsHullFeatures: features = physicsHullFeatures (&inst0, &inst1);
+
+        Function (&PhysicsHullInstance: a, b, &SeparationMeta: c) -> Float: separation;
+        SeparationMeta: meta;
+
+        switch (features.featureClass)
+        {
+            case 0x11
+                separation = separationPointVsPoint&;
+                break;
+
+            case 0x12
+                separation = separationLineVsPoint&;
+                break;
+
+            case 0x21
+                separation = separationPointVsLine&;
+                break;
+
+            case 0x22
+                separation = separationLineVsLine&; 
+                break;
+
+            default
+                tEvent = -1;
+                return
+        }
+
+        Function (&PhysicsHullInstance: a, b, &SeparationMeta: c) -> Float:
+        separation = match features.featureClass
+        {
+            0x11: separationPointVsPoint;
+            0x12: separationLineVsPoint;
+            0x21: separationPointVsLine;
+            0x22: separationLineVsLine;
+            default: return -1;
+        }
+
+        Float: tUpper = dt;
+
+        Float: sEvent = separation (&inst0, &inst1, &meta);
+        &inst0 \at tUpper;
+        &inst1 \at tUpper;
+        Float: sUpper = separation (&inst0, &inst1, &meta);
+
+        if (sUpper > 0.0f)
+        {
+            return -1.0f;
+        }
+
+        if (sEvent < PHYS_HULL_TOL)
+        {
+            return;
+        }
+
+        Int8: rootCycles = 16;
+        while PHYS_HULL_TOL < sEvent
+        {
+            Float: tNew = (tEvent + tUpper)/2.0f;
+            &inst0 \at tNew;
+            &inst1 \at tNew;
+            Float: sNew = separation (&inst0, &inst1, &meta);
+
+            if (sNew > 0)
+            {   sEvent = sNew;
+                tEvent = tNew;
+            }
+            else
+            {   sUpper = sNew;
+                tUpper = tNew;
+            }
+            if (--rootCycles == 0) break;
+        }
+    }
+
+    return;
+}
+

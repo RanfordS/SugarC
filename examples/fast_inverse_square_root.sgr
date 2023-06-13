@@ -12,11 +12,11 @@
     For completeness, the original bit hack would look like this is SugarC
     `i = (&Int32: y&)@;`.
  *`
-Function Float32: q_rsqrt (number)
+Function (Float32: number) -> Float32: q_rsqrt
 {
     Int32: i;
     Float32: x2, y;
-    Const Float: threehalfs = 1.5f;
+    Const Float32: threehalfs = 1.5f;
 
     x2 = number*0.5f;
     y  = number;
@@ -28,3 +28,4 @@ Function Float32: q_rsqrt (number)
 
     return y;
 }
+
