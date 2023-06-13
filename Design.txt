@@ -396,7 +396,7 @@ Infix: \dot = vec3Dot;
 Function (Int: argc, &&Char: argv) -> Int: main
 {
     Vec3: a = {.v = {0,1,2}}, b = {.v = {2,2,1}};
-    Float: c = a /*awkward comment*/ dot b + 1;
+    Float: c = a /*awkward comment*/ \dot b + 1;
     io.printf ("The answer is %f\n", c);
     return 0;
 }
@@ -421,7 +421,10 @@ INFIX_SUGAR : SUGAR_IDENT = IDENT ;
 
 FUNCTION_TYPE ( INT_TYPE : IDENT , & & CHAR_TYPE : IDENT ) -> INT_TYPE : IDENT
 {
-    ...
+    TYPE : IDENT = { . IDENT = { NUMBER_LIT , NUMBER_LIT , NUMBER_LIT } , ...
+    TYPE : IDENT = IDENT COMMENT SUGAR_IDENT IDENT + NUMBER_LIT ;
+    IDENT . IDENT ( STRING_LIT , IDENT ) ;
+    RETURN_KEYWORD NUMBER_LIT ;
 }
 
 // top-level summary
