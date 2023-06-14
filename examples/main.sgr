@@ -6,7 +6,7 @@ include "vector";
  *  \param argc Number of arguments passed to the program.
  *  \param argv 
  *`
-Function Int: main (argc, &&Char argv)
+Function (argc, &&Char argv) -> (Int: error): main 
 {
     print ("Hello world");
     return 0;

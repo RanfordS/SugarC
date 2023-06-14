@@ -1,0 +1,280 @@
+
+`* Uses a comparison matrix to determine the order of the given input.
+ * \param count Number of elements to sort.
+ * \param input Data to sort.
+ * \param index What the final index should be for each element.
+
+Method Construction:
+
+Lets simply create a table of comparison, $row > col$.
+┌───┬─────────────╥───┐
+│ > │ A B C D E F ║ ∑ │
+├───┼─────────────╫───┤
+│ A │ 0 0 0 0 0 0 ║ 0 │
+│ B │ 1 0 0 0 0 0 ║ 1 │
+│ C │ 1 1 0 0 0 0 ║ 2 │
+│ D │ 1 1 1 0 0 0 ║ 3 │
+│ E │ 1 1 1 1 0 0 ║ 4 │
+│ F │ 1 1 1 1 1 0 ║ 5 │
+└───┴─────────────╨───┘
+    → A B C D E F
+Here we see that each row sums to its index.
+Lets check that's true with out-of-order data.
+We're going to omit the diagonal as this will always be 0.
+┌───┬─────────────╥───┐
+│ > │ D A E B C F ║ ∑ │
+├───┼─────────────╫───┤
+│ D │ - 1 0 1 1 0 ║ 3 │
+│ A │ 0 - 0 0 0 0 ║ 0 │
+│ E │ 1 1 - 1 1 0 ║ 4 │
+│ B │ 0 1 0 - 0 0 ║ 1 │
+│ C │ 0 1 0 1 - 0 ║ 2 │
+│ F │ 1 1 1 1 1 - ║ 5 │
+└───┴─────────────╨───┘
+    → A B C D E F
+Again, we get what we want.
+It's interesting to note that the diagonal forms a negative reflection line.
+What happens if there's duplicate data?
+┌───┬─────────────╥───┐
+│ > │ D A A B C B ║ ∑ │
+├───┼─────────────╫───┤
+│ D │ - 1 1 1 1 1 ║ 5 │
+│ A │ 0 - 0 0 0 0 ║ 0 │
+│ A │ 0 0 - 0 0 0 ║ 0 │
+│ B │ 0 1 1 - 0 0 ║ 2 │
+│ C │ 0 1 1 1 - 1 ║ 4 │
+│ B │ 0 1 1 0 0 - ║ 2 │
+└───┴─────────────╨───┘
+    → A ? B ? C D
+Duplicate entries have the same index,
+and our negative reflection property from before is gone.
+We can bodge this by using $>=$ below the diagonal, keeping $>$ above.
+┌───┬─────────────╥───┐
+│ > │ D A A B C B ║ ∑ │
+├───┼─────────────╫───┤
+│ D │ - 1 1 1 1 1 ║ 5 │
+│ A │ 0 - 0 0 0 0 ║ 0 │
+│ A │ 0 1 - 0 0 0 ║ 1 │
+│ B │ 0 1 1 - 0 0 ║ 2 │
+│ C │ 0 1 1 1 - 1 ║ 4 │
+│ B │ 0 1 1 1 0 - ║ 3 │
+└───┴─────────────╨───┘
+    → A A B B C D
+Our choice of bodge has the nice effect of keeping the input order within groups
+of duplicates ().
+The actual table section doesn't need to be stored, we can write directly to the
+sum column as we go, and the values either side of the diagonal can be
+calculated simultaneously.
+Overall number of comparisons is $N*(N-1)/2$.
+ *`
+Function (Size: count, [count] Int: input `[ReadOnly]`, index `[WriteOnly]`):
+determineOrderByMatrix
+[]
+{
+    for (Size: i = 1 -> count)
+    {
+        for (Size: j -> i)
+        {
+            Bool: comp = value[i] >= value[j];
+            index[i] += comp;
+            index[j] += comp!;
+
+`* Uses a comparison matrix to determine the order of the given input.
+ * \param count Number of elements to sort.
+ * \param input Data to sort.
+ * \param index What the final index should be for each element.
+
+Method Construction:
+
+Lets simply create a table of comparison, $row > col$.
+┌───┬─────────────╥───┐
+│ > │ A B C D E F ║ ∑ │
+├───┼─────────────╫───┤
+│ A │ 0 0 0 0 0 0 ║ 0 │
+│ B │ 1 0 0 0 0 0 ║ 1 │
+│ C │ 1 1 0 0 0 0 ║ 2 │
+│ D │ 1 1 1 0 0 0 ║ 3 │
+│ E │ 1 1 1 1 0 0 ║ 4 │
+│ F │ 1 1 1 1 1 0 ║ 5 │
+└───┴─────────────╨───┘
+    → A B C D E F
+Here we see that each row sums to its index.
+Lets check that's true with out-of-order data.
+We're going to omit the diagonal as this will always be 0.
+┌───┬─────────────╥───┐
+│ > │ D A E B C F ║ ∑ │
+├───┼─────────────╫───┤
+│ D │ - 1 0 1 1 0 ║ 3 │
+│ A │ 0 - 0 0 0 0 ║ 0 │
+│ E │ 1 1 - 1 1 0 ║ 4 │
+│ B │ 0 1 0 - 0 0 ║ 1 │
+│ C │ 0 1 0 1 - 0 ║ 2 │
+│ F │ 1 1 1 1 1 - ║ 5 │
+└───┴─────────────╨───┘
+    → A B C D E F
+Again, we get what we want.
+It's interesting to note that the diagonal forms a negative reflection line.
+What happens if there's duplicate data?
+┌───┬─────────────╥───┐
+│ > │ D A A B C B ║ ∑ │
+├───┼─────────────╫───┤
+│ D │ - 1 1 1 1 1 ║ 5 │
+│ A │ 0 - 0 0 0 0 ║ 0 │
+│ A │ 0 0 - 0 0 0 ║ 0 │
+│ B │ 0 1 1 - 0 0 ║ 2 │
+│ C │ 0 1 1 1 - 1 ║ 4 │
+│ B │ 0 1 1 0 0 - ║ 2 │
+└───┴─────────────╨───┘
+    → A ? B ? C D
+Duplicate entries have the same index,
+and our negative reflection property from before is gone.
+We can bodge this by using $>=$ below the diagonal, keeping $>$ above.
+┌───┬─────────────╥───┐
+│ > │ D A A B C B ║ ∑ │
+├───┼─────────────╫───┤
+│ D │ - 1 1 1 1 1 ║ 5 │
+│ A │ 0 - 0 0 0 0 ║ 0 │
+│ A │ 0 1 - 0 0 0 ║ 1 │
+│ B │ 0 1 1 - 0 0 ║ 2 │
+│ C │ 0 1 1 1 - 1 ║ 4 │
+│ B │ 0 1 1 1 0 - ║ 3 │
+└───┴─────────────╨───┘
+    → A A B B C D
+Our choice of bodge has the nice effect of keeping the input order within groups
+of duplicates ().
+The actual table section doesn't need to be stored, we can write directly to the
+sum column as we go, and the values either side of the diagonal can be
+calculated simultaneously.
+Overall number of comparisons is $N*(N-1)/2$.
+ *`
+Function (Size: count, [count] Int: input `[ReadOnly]`, index `[WriteOnly]`):
+determineOrderByMatrix
+[]
+{
+    for (Size: i = 1 -> count)
+    {
+        for (Size: j -> i)
+        {
+            Bool: comp = value[i] >= value[j];
+            index[i] += comp;
+            index[j] += comp!;
+        }
+    }
+}
+
+
+
+`` Returns the number of swaps it did
+Function (&Int: x0, x1, x2) -> UInt: sort3
+{
+    UInt: r = 0;
+    if (x0@ <= x1@)
+    {
+        if (x1@ <= x2@))    // if x1 <= x2
+            return r;       // x0 <= x1 && x1 <= x2
+                            // x0 <= x1 && x1 > x2
+        x1@ >< x2@;         // x0 <= x2 && x1 < x2
+        r = 1;
+        if (x0@ > x1@)      // if x0 > x1
+        {
+            x0@ >< x1@;     // x0 < x1 && x1 <= x2
+            r = 2;
+        }
+        return r;           // x0 <= x1 && x1 < x2
+    }
+    if (x1@ > x2@)          // x0 > x1, if x1 > x2
+    {
+        x0@ >< x2@;         // x0 < x1 && x1 < x2
+        r = 1;
+        return r;
+    }
+    x0@ >< x1@;             // x0 > x1 && x1 <= x2
+    r = 1;                  // x0 < x1 && x0 <= x2
+    if (x1@ > x2@)          // if x1 > x2
+    {
+        x0@ >< x1@;         // x0 <= x1 && x1 < x2
+        r = 2;
+    }
+    return r;
+}
+
+Function (&Int: x0, x1, x2, x3)
+{
+}
+        }
+    }
+}
+
+
+
+`` Returns the number of swaps it did
+Function (&Int: x0, x1, x2) -> UInt: sort3
+{
+    UInt: r = 0;
+    if (x0@ <= x1@)
+    {
+        if (x1@ <= x2@))    `` if x1 <= x2
+            return r;       `` x0 <= x1 && x1 <= x2
+                            `` x0 <= x1 && x1 > x2
+        x1@ >< x2@;         `` x0 <= x2 && x1 < x2
+        r = 1;
+        if (x0@ > x1@)      `` if x0 > x1
+        {
+            x0@ >< x1@;     `` x0 < x1 && x1 <= x2
+            r = 2;
+        }
+        return r;           `` x0 <= x1 && x1 < x2
+    }
+    if (x1@ > x2@)          `` x0 > x1, if x1 > x2
+    {
+        x0@ >< x2@;         `` x0 < x1 && x1 < x2
+        r = 1;
+        return r;
+    }
+    x0@ >< x1@;             `` x0 > x1 && x1 <= x2
+    r = 1;                  `` x0 < x1 && x0 <= x2
+    if (x1@ > x2@)          `` if x1 > x2
+    {
+        x0@ >< x1@;         `` x0 <= x1 && x1 < x2
+        r = 2;
+    }
+    return r;
+}
+
+Function (&Int: x0, x1, x2, x3): sort4
+{
+    sort3 (x0, x1, x2);
+    if (x2@ >  x3@)
+    {
+        x2@ >< x3@;
+        if (x1@ >  x2@)
+        {
+            x1@ >< x2@;
+            if (x0@ >  x1@)
+            {
+                x0@ >< x1@;
+            }
+        }
+    }
+}
+
+Function (&Int: x0, x1, x2, x3, x4): sort5
+{
+    sort4 (x0, x1, x2, x3);
+    if (x3@ >  x4@)
+    {
+        x3@ >< x4@;
+        if (x2@ >  x3@)
+        {
+            x2@ >< x3@;
+            if (x1@ >  x2@)
+            {
+                x1@ >< x2@;
+                if (x0@ >  x1@)
+                {
+                    x0@ >< x1@;
+                }
+            }
+        }
+    }
+}
