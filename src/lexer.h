@@ -1,0 +1,83 @@
+#pragma once
+#include "common.h"
+
+
+
+typedef enum
+{
+    TOKEN_UNKNOWN,
+
+    TOKEN_L_BRACKET,
+    TOKEN_L_SQUARE,
+    TOKEN_L_BRACE,
+    TOKEN_R_BRACKET,
+    TOKEN_R_SQUARE,
+    TOKEN_R_BRACE,
+
+    TOKEN_UNARY_PLUS,
+    TOKEN_UNARY_MINUS,
+    TOKEN_ASSIGN,
+    TOKEN_ADD,
+    TOKEN_SUB,
+    TOKEN_MUL,
+    TOKEN_DIV,
+    TOKEN_MOD,
+    TOKEN_INC,
+    TOKEN_DEC,
+
+    TOKEN_EQUAL,
+    TOKEN_NOT_EQUAL,
+    TOKEN_GREATER_THAN,
+    TOKEN_GREATER_OR_EQUAL,
+    TOKEN_LESS_THAN,
+    TOKEN_LESS_OR_EQUAL,
+
+    TOKEN_LOGICAL_NOT,     
+    TOKEN_LOGICAL_AND,
+    TOKEN_LOGICAL_OR,
+    TOKEN_LOGICAL_XOR,
+
+    TOKEN_BIT_NOT,     
+    TOKEN_BIT_AND,
+    TOKEN_BIT_OR,
+    TOKEN_BIT_XOR,
+    TOKEN_BIT_L_SHIFT,
+    TOKEN_BIT_R_SHIFT,
+
+    TOKEN_MEMBER_OF,
+    TOKEN_ADDRESS_OF, 
+    TOKEN_AT_ADDRESS,
+
+    TOKEN_FORWARD_RANGE,
+    TOKEN_REVERSE_RANGE,
+    TOKEN_LIST_RANGE,
+
+    TOKEN_TYPE,
+    TOKEN_COMMENT,
+    TOKEN_DOCUMENTATION,
+
+    TOKEN_CHARACTER_LITERAL,
+    TOKEN_STRING_LITERAL,
+    TOKEN_LONG_STRING_LITERAL,
+
+    TOKEN_CUSTOM_OPERATOR,
+    TOKEN_IDENTIFIER,
+
+    TOKEN_TYPE_COUNT,
+}
+TokenType;
+
+
+
+typedef struct
+{
+    TokenType type;
+    size_t line;
+    size_t column;
+    char* text;
+}
+Token;
+
+
+
+// EOF //
