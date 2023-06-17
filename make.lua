@@ -15,7 +15,7 @@ project.obj = "objs/"
 project.doc = "docs/"
 project.extensions = {"c", "h"}
 project.main = "main.c"
-project.destination = "DataStructures"
+project.destination = "sugarc"
 
 -- -coverage
 -- -fprofile-arcs -ftest-coverage
