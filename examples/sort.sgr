@@ -170,49 +170,6 @@ Function (&Int: x0, x1, x2) -> UInt: sort3
     UInt: r = 0;
     if (x0@ <= x1@)
     {
-        if (x1@ <= x2@))    // if x1 <= x2
-            return r;       // x0 <= x1 && x1 <= x2
-                            // x0 <= x1 && x1 > x2
-        x1@ >< x2@;         // x0 <= x2 && x1 < x2
-        r = 1;
-        if (x0@ > x1@)      // if x0 > x1
-        {
-            x0@ >< x1@;     // x0 < x1 && x1 <= x2
-            r = 2;
-        }
-        return r;           // x0 <= x1 && x1 < x2
-    }
-    if (x1@ > x2@)          // x0 > x1, if x1 > x2
-    {
-        x0@ >< x2@;         // x0 < x1 && x1 < x2
-        r = 1;
-        return r;
-    }
-    x0@ >< x1@;             // x0 > x1 && x1 <= x2
-    r = 1;                  // x0 < x1 && x0 <= x2
-    if (x1@ > x2@)          // if x1 > x2
-    {
-        x0@ >< x1@;         // x0 <= x1 && x1 < x2
-        r = 2;
-    }
-    return r;
-}
-
-Function (&Int: x0, x1, x2, x3)
-{
-}
-        }
-    }
-}
-
-
-
-`` Returns the number of swaps it did
-Function (&Int: x0, x1, x2) -> UInt: sort3
-{
-    UInt: r = 0;
-    if (x0@ <= x1@)
-    {
         if (x1@ <= x2@))    `` if x1 <= x2
             return r;       `` x0 <= x1 && x1 <= x2
                             `` x0 <= x1 && x1 > x2
@@ -276,5 +233,36 @@ Function (&Int: x0, x1, x2, x3, x4): sort5
                 }
             }
         }
+    }
+}
+
+
+
+Function
+(   &Byte: base,
+    Size: memberCount, size,
+    Function (&Byte: a, b) -> Int: comp
+):  quicksort
+{
+    Infix (&Byte: l, r): \swap
+    {
+        for (Size: i -> size) { l[i] >< r[i]; }
+    }
+
+    if (memberCount < 2) { return; }
+
+    &Byte: pivot = base + (memberCount/2)*size;
+
+    Size: headIndex = 0;
+    Size: tailIndex = (memberCount - 1)*size;
+
+    while (true)
+    {
+        while (comp (base + headIndex) == -1) { headIndex += size; }
+        while (comp (base + tailIndex) ==  1) { tailIndex -= size; }
+
+        if (tailIndex <= headIndex) break;
+
+        (base + headIndex) \swap (base + tailIndex);
     }
 }
