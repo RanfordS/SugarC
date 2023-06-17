@@ -20,7 +20,7 @@ Sugar for (Size: $N = 2 ->| 4)
         }
 
         Sugar: [i] { return self.data[i]; }
-        Sugar Float: .mag { return Math.sqrt (self \dot self); }
+        Sugar: .mag { return Math.sqrt (self \dot self); }
 
         Sugar if (N == 2)
             Sugar self: .swap

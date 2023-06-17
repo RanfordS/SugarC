@@ -47,7 +47,7 @@ Sugar: Char.isLetter
  *  \param string Null terminated
  *`
 `[Pure]`
-Function Bool: isUTF8 (&Char: string)
+Function (&Char: string) -> Bool: isUTF8 
 {
     UInt8: expecting = 0;
     while (Size: i = 0; Char: curr = string[i]; ++i)
@@ -84,16 +84,16 @@ Function Bool: isUTF8 (&Char: string)
     return true;
 }
 
-`[Test]` Function: isUTF8_ascii ()
+`[Test]` Function: isUTF8_ascii
 {
     return isUTF8 ("Hello world") == true;
 }
-`[Test]` Function: isUTF8_incompleted ()
+`[Test]` Function: isUTF8_incompleted
 {
     []Char: beta = {128, 0};
     return isUTF8 (beta) == false;
 }
-`[Test]` Function: isUTF8_multibyte ()
+`[Test]` Function: isUTF8_multibyte
 {
     return isUTF8 ("£13.10 ◉") == true;
 }
