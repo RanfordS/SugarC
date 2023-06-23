@@ -1,12 +1,12 @@
 
-Sugar for (Size: $N = 2 ->| 4)
+Sugar for (Size: N = 2 ->| 4)
 {
-    `` Mathematical vector type with $N components.
-    Struct: Vec#$N
+    `` Mathematical vector type with N components.
+    Struct: Vec#N
     {
-        [$N] Float: data;
+        [N] Float: data;
 
-        Sugar switch ($N)
+        Sugar switch (N)
         {
             case 4:
                 Sugar: .w { return self.data[3]; }
@@ -23,7 +23,7 @@ Sugar for (Size: $N = 2 ->| 4)
         Sugar: .mag { return Math.sqrt (self \dot self); }
 
         Sugar if (N == 2)
-            Sugar self: .swap
+            Sugar: .swap
             {
                 Float: tmp = self.x;
                 self.x = self.y;
@@ -31,30 +31,44 @@ Sugar for (Size: $N = 2 ->| 4)
             }
     }
 
-    Infix Vec#$N: (a) + (b)
+    Function (Vec#N: a, b) -> Vec#N: vec#N#Add
     {
-        Vec#$N: c;
-        for (i -> $N) c[i] = a[i] + b[i];
+        Vec#N: c;
+        for (i -> N) c[i] = a[i] + b[i];
         return c;
     }
+    Infix: + = vec#N#Add;
 
-    Infix Vec#$N: (a) * (b)
+    Function (Vec#N: a, b) -> Vec#N: vec#N#Mul
     {
-        Vec#$N: c;
-        for (i -> $N) c[i] = a[i] * b[i];
+        Vec#N: c;
+        for (i -> N) c[i] = a[i] * b[i];
         return c;
     }
+    Infix: * = vec#N#Mul;
 
-    Function Float: vec#$N#_sum (Vec#$N: a)
+    Function (Vec#N: a) -> Float: vec#N#Sum 
     {
         Float: sum = 0;
-        for (i -> $N) sum += a[i];
+        for (i -> N) sum += a[i];
         return sum;
     }
+    Sugar: Vec#N.sum = vec#N#Sum
 
-    Function Float: vec#$N_dot (Vec#$N: a, b)
+    Function (Vec#N: a, b) -> Float: vec#N#Dot 
     {
-        return vec#$N#_sum (a*b);
+        return vec#N#_sum (a*b);
     }
+    Infix Vec#N: \dot = vec#N#Dot;
 }
+
+Function (Vec3: a, b) -> Vec3: vec3_cross
+{
+    Vec3: c;
+    c.x = a.y*b.z - a.z*b.y;
+    c.y = a.z*b.x - a.x*b.z;
+    c.z = a.x*b.y - a.y*b.x;
+    return c;
+}
+Infix Vec3: \cross = vec3_cross;
 
