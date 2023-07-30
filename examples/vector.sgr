@@ -10,11 +10,12 @@ Sugar for (Size: N = 2 ->| 4)
         {
             case 4:
                 Sugar: .w { return self.data[3]; }
+                continue;
             case 3:
                 Sugar: .z { return self.data[2]; }
+                continue;
             case 2:
                 Sugar: .y { return self.data[1]; }
-            case 1:
                 Sugar: .x { return self.data[0]; }
                 break;
         }
@@ -39,6 +40,14 @@ Sugar for (Size: N = 2 ->| 4)
     }
     Infix: + = vec#N#Add;
 
+    Function (Vec#N: a, b) -> Vec#N: vec#N#Sub
+    {
+        Vec#N: c;
+        for (i -> N) c[i] = a[i] - b[i];
+        return c;
+    }
+    Infix: - = vec#N#Sub;
+
     Function (Vec#N: a, b) -> Vec#N: vec#N#Mul
     {
         Vec#N: c;
@@ -46,6 +55,14 @@ Sugar for (Size: N = 2 ->| 4)
         return c;
     }
     Infix: * = vec#N#Mul;
+
+    Function (Vec#N: a, b) -> Vec#N: vec#N#Div
+    {
+        Vec#N: c;
+        for (i -> N) c[i] = a[i] / b[i];
+        return c;
+    }
+    Infix: / = vec#N#Div;
 
     Function (Vec#N: a) -> Float: vec#N#Sum 
     {
@@ -59,7 +76,23 @@ Sugar for (Size: N = 2 ->| 4)
     {
         return vec#N#_sum (a*b);
     }
-    Infix Vec#N: \dot = vec#N#Dot;
+    Infix: \dot = vec#N#Dot;
+
+    Function (Vec#N: a, Float: b): vec#N#AddFloat
+    {
+        Vec#N: c;
+        for (i -> N) c[i] = a[i] + b;
+        return c;
+    }
+    Commutative Infix: + = vec#N#AddFloat;
+
+    Function (Vec#N: a, Float: b): vec#N#SubFloat
+    {
+        Vec#N: c;
+        for (i -> N) c[i] = a[i] - b;
+        return c;
+    }
+    Commutative Infix: - = vec#N#SubFloat;
 }
 
 Function (Vec3: a, b) -> Vec3: vec3_cross

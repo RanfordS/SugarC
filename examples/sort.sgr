@@ -148,9 +148,9 @@ determineOrderByMatrix
 
 
 `` Returns the number of swaps it did
-Function (&Int: x0, x1, x2) -> (UInt: r = 0) sort3
+Function (&Int: x0, x1, x2) -> (UInt: r = 0): sort3
 {
-    if (x0@ <= x1@)
+    if (x0@ <= x1@)         `` if x0 <= x1
     {
         if (x1@ <= x2@))    `` if x1 <= x2
             return;         `` x0 <= x1 && x1 <= x2
@@ -174,7 +174,7 @@ Function (&Int: x0, x1, x2) -> (UInt: r = 0) sort3
     r = 1;                  `` x0 < x1 && x0 <= x2
     if (x1@ >  x2@)         `` if x1 > x2
     {
-        x0@ >< x1@;         `` x0 <= x1 && x1 < x2
+        x1@ >< x2@;         `` x0 <= x1 && x1 < x2
         r = 2;
     }
     return;

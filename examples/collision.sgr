@@ -15,37 +15,14 @@ physicsHullCollisionTime
         Function (&PhysicsHullInstance: a, b, &SeparationMeta: c) -> Float: separation;
         SeparationMeta: meta;
 
-        switch (features.featureClass)
-        {
-            case 0x11
-                separation = separationPointVsPoint&;
-                break;
-
-            case 0x12
-                separation = separationLineVsPoint&;
-                break;
-
-            case 0x21
-                separation = separationPointVsLine&;
-                break;
-
-            case 0x22
-                separation = separationLineVsLine&; 
-                break;
-
-            default
-                tEvent = -1;
-                return
-        }
-
         Function (&PhysicsHullInstance: a, b, &SeparationMeta: c) -> Float:
-        separation = match features.featureClass
+        separation = match (features.featureClass)
         {
             0x11: separationPointVsPoint;
             0x12: separationLineVsPoint;
             0x21: separationPointVsLine;
             0x22: separationLineVsLine;
-            default: return -1;
+            default: return -1.0f;
         }
 
         Float: tUpper = dt;

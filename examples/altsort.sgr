@@ -1,0 +1,46 @@
+
+`* The following sort function works but is less optimal than the one in sort.sgr
+
+      | i0 | i0 | i1 |       |      |
+      | <= | <= | <= |       |      |
+      | i1 | i2 | i2 | swaps | case |
+------+----+----+----+-------+------+
+2 1 0 |  0 |  0 |  0 | i0-i2 |    0 |
+2 0 1 |  0 |  0 |  1 |  <<<  |    1 |
+N / A |  0 |  1 |  0 |   -   |    2 |
+1 0 2 |  0 |  1 |  1 | i0-i1 |    3 |
+1 2 0 |  1 |  0 |  0 |  >>>  |    4 |
+N / A |  1 |  0 |  1 |   -   |    5 |
+0 2 1 |  1 |  1 |  0 | i1-i2 |    6 |
+0 1 2 |  1 |  1 |  1 |   -   |    7 |
+*`
+
+Function (&Int: x0, x1, x2): sort3
+{
+    UInt8: comp
+        = ((x0@ <= x1@) << 2)
+        | ((x0@ <= x2@) << 1)
+        | ((x1@ <= x2@) << 0);
+    switch (comp)
+    {
+        case 0:
+            x0@ >< x2@;
+            break;
+
+        case 1:
+            x0@, x1@, x2@ = x1@, x2@, x0@;
+            break;
+
+        case 3:
+            x0@ >< x1@;
+            break;
+
+        case 4:
+            x0@, x1@, x2@ = x2@, x0@, x1@;
+            break;
+
+        case 6:
+            x1@ >< x2@;
+            break;
+    }
+}
